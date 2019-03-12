@@ -16,6 +16,8 @@ READY_TO_MINUS_ACCOUNT = {}
 
 READY_TO_TAX = {}
 READY_TO_COMISSION = {}
+READY_TO_COUPON_INCOME = {}
+READY_TO_DIVIDENDS = {}
 
 
 @bot.message_handler(commands=['start'])
@@ -40,10 +42,15 @@ def text_handler(message):
 			del READY_TO_ADD_AMOUNT[uid]
 		if uid in READY_TO_MINUS_ACCOUNT:
 			del READY_TO_MINUS_ACCOUNT[uid]
+		
 		if uid in READY_TO_TAX:
 			del READY_TO_TAX[uid]
 		if uid in READY_TO_COMISSION:
 			del READY_TO_COMISSION[uid]
+		if uid in READY_TO_COUPON_INCOME:
+			del READY_TO_COUPON_INCOME[uid]
+		if uid in READY_TO_DIVIDENDS:
+			del READY_TO_DIVIDENDS[uid]
 		text = 'Операция отменена'
 		bot.send_message(cid, text)
 		text = 'Выберите тип операции'
@@ -115,7 +122,19 @@ def text_handler(message):
 		return bot.send_message(cid, text, reply_markup=markup)
 	elif message.text == 'Заплатить комиссию':
 		READY_TO_COMISSION[uid] = {}
-		text = 'Введите стоимость комиссию'
+		text = 'Введите стоимость комиссии'
+		markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=1)
+		markup.row('❌ Отмена')
+		return bot.send_message(cid, text, reply_markup=markup)
+	if message.text == 'Получить купонный доход':
+		READY_TO_COUPON_INCOME[uid] = {}
+		text = 'Введите идентификатор облигации, по которой получен доход'
+		markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=1)
+		markup.row('❌ Отмена')
+		return bot.send_message(cid, text, reply_markup=markup)
+	if message.text == 'Получить дивиденды':
+		READY_TO_DIVIDENDS[uid] = {}
+		text = 'Введите идентификатор пакета акций, по которому получены дивиденды'
 		markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=1)
 		markup.row('❌ Отмена')
 		return bot.send_message(cid, text, reply_markup=markup)
@@ -225,7 +244,73 @@ def text_handler(message):
 			for x in config.operations_markup:
 				markup.row(*x)
 			markup.row('↩️ Назад')
-			return bot.send_message(cid, text, reply_markup=markup) 
+			return bot.send_message(cid, text, reply_markup=markup)
+
+	# Обработать сотояние добавления купонного дохода
+	if uid in READY_TO_COUPON_INCOME:
+		if 'bond' not in READY_TO_COUPON_INCOME[uid]:
+			READY_TO_COUPON_INCOME[uid]['bond'] = message.text
+			text = 'Введите стоимость дохода'
+			return bot.send_message(cid, text)
+		if 'amount' not in READY_TO_COUPON_INCOME[uid]:
+			try:
+				int(message.text)
+			except Exception as e:
+				text = 'Введите число!'
+				return bot.send_message(cid, text)
+			READY_TO_COUPON_INCOME[uid]['amount'] = int(message.text)
+			text = 'Введите брокера'
+			return bot.send_message(cid, text)
+		if 'broker' not in READY_TO_COUPON_INCOME[uid]:
+			READY_TO_COUPON_INCOME[uid]['broker'] = message.text
+			util.DataBase.add_new_coupon_income(
+				uid, int(time.time()), 
+				READY_TO_COUPON_INCOME[uid]['bond'],
+				READY_TO_COUPON_INCOME[uid]['amount'], 
+				READY_TO_COUPON_INCOME[uid]['broker'])
+			print(READY_TO_COUPON_INCOME[uid])
+			del READY_TO_COUPON_INCOME[uid]
+			text = 'Вы успешно добавили купонный доход'
+			bot.send_message(cid, text)
+			text = 'Выберите тип операции'
+			markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=1)
+			for x in config.operations_markup:
+				markup.row(*x)
+			markup.row('↩️ Назад')
+			return bot.send_message(cid, text, reply_markup=markup)
+		
+	# Обработать сотояние добавления купонного дохода
+	if uid in READY_TO_DIVIDENDS:
+		if 'dividend' not in READY_TO_DIVIDENDS[uid]:
+			READY_TO_DIVIDENDS[uid]['dividend'] = message.text
+			text = 'Введите стоимость дохода'
+			return bot.send_message(cid, text)
+		if 'amount' not in READY_TO_DIVIDENDS[uid]:
+			try:
+				int(message.text)
+			except Exception as e:
+				text = 'Введите число!'
+				return bot.send_message(cid, text)
+			READY_TO_DIVIDENDS[uid]['amount'] = int(message.text)
+			text = 'Введите брокера'
+			return bot.send_message(cid, text)
+		if 'broker' not in READY_TO_DIVIDENDS[uid]:
+			READY_TO_DIVIDENDS[uid]['broker'] = message.text
+			util.DataBase.add_new_dividend(
+				uid, int(time.time()), 
+				READY_TO_DIVIDENDS[uid]['dividend'],
+				READY_TO_DIVIDENDS[uid]['amount'], 
+				READY_TO_DIVIDENDS[uid]['broker'])
+			print(READY_TO_DIVIDENDS[uid])
+			del READY_TO_DIVIDENDS[uid]
+			text = 'Вы успешно добавили дивиденд'
+			bot.send_message(cid, text)
+			text = 'Выберите тип операции'
+			markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=1)
+			for x in config.operations_markup:
+				markup.row(*x)
+			markup.row('↩️ Назад')
+			return bot.send_message(cid, text, reply_markup=markup)
 
 
 def main():

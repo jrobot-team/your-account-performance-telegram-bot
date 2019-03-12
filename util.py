@@ -68,6 +68,32 @@ class DataBase:
 				AUTO_INCREMENT=1;
 				'''
 				cursor.execute(sql)
+				sql = '''
+				CREATE TABLE IF NOT EXISTS `coupon_income` (
+					`id` int(11) NOT NULL AUTO_INCREMENT,
+					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
+					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`bond` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`amount` int(11) COLLATE utf8_general_ci NOT NULL,
+					`broker` varchar(11) COLLATE utf8_general_ci,
+					PRIMARY KEY (`id`)
+				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
+				AUTO_INCREMENT=1;
+				'''
+				cursor.execute(sql)
+				sql = '''
+				CREATE TABLE IF NOT EXISTS `dividends` (
+					`id` int(11) NOT NULL AUTO_INCREMENT,
+					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
+					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`dividend` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`amount` int(11) COLLATE utf8_general_ci NOT NULL,
+					`broker` varchar(11) COLLATE utf8_general_ci,
+					PRIMARY KEY (`id`)
+				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
+				AUTO_INCREMENT=1;
+				'''
+				cursor.execute(sql)
 			connection.commit()
 		finally:
 			connection.close()
@@ -135,7 +161,7 @@ class DataBase:
 	@staticmethod
 	def add_new_commission(uid, date, amount, broker):
 		"""
-		Налог
+		Комиссия
 		"""
 		connection = pymysql.connect(
 			host=config.db_host,
@@ -148,6 +174,46 @@ class DataBase:
 			with connection.cursor() as cursor:
 				sql = 'INSERT INTO `comissions` (`uid`, `date`, `amount`, `broker`) VALUES (%s, %s, %s, %s)'
 				cursor.execute(sql, (uid, date, amount, broker))
+			connection.commit()
+		finally:
+			connection.close()
+
+	@staticmethod
+	def add_new_coupon_income(uid, date, bond, amount, broker):
+		"""
+		Купонный доход
+		"""
+		connection = pymysql.connect(
+			host=config.db_host,
+			user=config.db_user,
+			password=config.db_password,
+			db=config.db_database,
+			charset=config.db_charset,
+			cursorclass=pymysql.cursors.DictCursor)
+		try:
+			with connection.cursor() as cursor:
+				sql = 'INSERT INTO `coupon_income` (`uid`, `date`, `bond`, `amount`, `broker`) VALUES (%s, %s, %s, %s, %s)'
+				cursor.execute(sql, (uid, date, bond, amount, broker))
+			connection.commit()
+		finally:
+			connection.close()
+	
+	@staticmethod
+	def add_new_dividend(uid, date, dividend, amount, broker):
+		"""
+		Получение дивидендов
+		"""
+		connection = pymysql.connect(
+			host=config.db_host,
+			user=config.db_user,
+			password=config.db_password,
+			db=config.db_database,
+			charset=config.db_charset,
+			cursorclass=pymysql.cursors.DictCursor)
+		try:
+			with connection.cursor() as cursor:
+				sql = 'INSERT INTO `dividends` (`uid`, `date`, `dividend`, `amount`, `broker`) VALUES (%s, %s, %s, %s, %s)'
+				cursor.execute(sql, (uid, date, dividend, amount, broker))
 			connection.commit()
 		finally:
 			connection.close()
