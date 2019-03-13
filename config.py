@@ -10,29 +10,35 @@ db_database='account_performance'
 db_charset = 'utf8'
 
 main_markup = [
-    ['Добавить операцию'],
-    ['Счет и портфель'],
+	['Добавить операцию'],
+	['Счет и портфель'],
 ]
 
 operations_markup = [
-    ['Пополнить счет'],
-    ['Вывести средства'],
-    ['Купить акции'],
-    ['Продать акции'],
-    ['Купить облигации'],
-    ['Продать облигации'],
-    ['Заплатить налог'],
-    ['Заплатить комиссию'],
-    ['Получить купонный доход'],    
-    ['Получить дивиденды'],
+	[{'text': 'Пополнить счет', 'callback': 'add_amount'}],
+	[{'text': 'Вывести средства', 'callback': 'minus_amount'}],
+	[{'text': 'Купить акции', 'callback': 'add_aczii'}],
+	[{'text': 'Продать акции', 'callback': 'delete_aczii'}],
+	[{'text': 'Купить облигации', 'callback': 'add_oblig'}],
+	[{'text': 'Продать облигации', 'callback': 'delete_oblig'}],
+	[{'text': 'Заплатить налог', 'callback': 'pay_nalog'}],
+	[{'text': 'Заплатить комиссию', 'callback': 'pay_comission'}],
+	[{'text': 'Получить купонный доход', 'callback': 'get_cupon'}],
+	[{'text': 'Получить дивиденды', 'callback': 'get_dividends'}],
 ]
 
+brokers = {
+	'0': 'БКС',
+	'1': 'Тинькофф',
+	'2': 'Сбербанк',
+}
+
 schet_markup = [
-    ['Посмотреть историю операций'],
+	[{'text': 'Посмотреть историю операций', 'callback': 'history'}],
 ]
 
 history_markup = [
-    ['За предыдущий месяц'],
-    ['За три месяца'],
-    ['Все'],
+	[{'text': 'За предыдущий месяц', 'callback': 'last_month'}],
+	[{'text': 'За три месяца', 'callback': 'three_months'}],
+	[{'text': 'Все', 'callback': 'all_months'}],
 ]

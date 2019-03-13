@@ -53,11 +53,10 @@ def text_handler(message):
 			del READY_TO_DIVIDENDS[uid]
 		text = 'Операция отменена'
 		bot.send_message(cid, text)
-		text = 'Выберите тип операции'
+		text = 'Главное меню'  # TODO: текущее состояние счета
 		markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=1)
-		for x in config.operations_markup:
+		for x in config.main_markup:
 			markup.row(*x)
-		markup.row('↩️ Назад')
 		return bot.send_message(cid, text, reply_markup=markup)
 
 	# Вернуться в главное меню
@@ -71,73 +70,18 @@ def text_handler(message):
 	# Обработать главное меню
 	if message.text == 'Добавить операцию':
 		text = 'Выберите тип операции'
-		markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=1)
+		keyboard = types.InlineKeyboardMarkup()
 		for x in config.operations_markup:
-			markup.row(*x)
-		markup.row('↩️ Назад')
-		return bot.send_message(cid, text, reply_markup=markup)
+			keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
+		# keyboard.add(types.InlineKeyboardButton(text='↩️ Назад', callback_data='back'))
+		return bot.send_message(cid, text, reply_markup=keyboard)
 	elif message.text == 'Счет и портфель' or message.text == '⤴️ Назад':
 		text = 'Счет и портфель'  # TODO: информация о портфеле
-		markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=1)
+		keyboard = types.InlineKeyboardMarkup()
 		for x in config.schet_markup:
-			markup.row(*x)
-		markup.row('↩️ Назад')
-		return bot.send_message(cid, text, reply_markup=markup)
-
-	# Обработать меню Счет и Портфель
-	if message.text == 'Посмотреть историю операций':
-		text = 'Информация за текущий месяц'
-		markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=1)
-		for x in config.history_markup:
-			markup.row(*x)
-		markup.row('⤴️ Назад')
-		return bot.send_message(cid, text, reply_markup=markup)
-
-	# Обработать операции
-	if message.text == 'Пополнить счет':
-		READY_TO_ADD_AMOUNT[uid] = {}
-		text = 'Введите сумму пополнения'
-		markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=1)
-		markup.row('❌ Отмена')
-		return bot.send_message(cid, text, reply_markup=markup)
-	elif message.text == 'Вывести средства':
-		READY_TO_MINUS_ACCOUNT[uid] = {}
-		text = 'Введите сумму, которую хотите вывести'
-		markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=1)
-		markup.row('❌ Отмена')
-		return bot.send_message(cid, text, reply_markup=markup)
-	elif message.text == 'Купить акции':
-		pass
-	elif message.text == 'Продать акции':
-		pass
-	elif message.text == 'Купить облигации':
-		pass
-	elif message.text == 'Продать облигации':
-		pass
-	elif message.text == 'Заплатить налог':
-		READY_TO_TAX[uid] = {}
-		text = 'Введите стоимость налога'
-		markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=1)
-		markup.row('❌ Отмена')
-		return bot.send_message(cid, text, reply_markup=markup)
-	elif message.text == 'Заплатить комиссию':
-		READY_TO_COMISSION[uid] = {}
-		text = 'Введите стоимость комиссии'
-		markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=1)
-		markup.row('❌ Отмена')
-		return bot.send_message(cid, text, reply_markup=markup)
-	if message.text == 'Получить купонный доход':
-		READY_TO_COUPON_INCOME[uid] = {}
-		text = 'Введите идентификатор облигации, по которой получен доход'
-		markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=1)
-		markup.row('❌ Отмена')
-		return bot.send_message(cid, text, reply_markup=markup)
-	if message.text == 'Получить дивиденды':
-		READY_TO_DIVIDENDS[uid] = {}
-		text = 'Введите идентификатор пакета акций, по которому получены дивиденды'
-		markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=1)
-		markup.row('❌ Отмена')
-		return bot.send_message(cid, text, reply_markup=markup)
+			keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
+		# keyboard.add(types.InlineKeyboardButton(text='↩️ Назад', callback_data='back'))
+		return bot.send_message(cid, text, reply_markup=keyboard)
 
 	# Обработать состояние операций
 	if uid in READY_TO_ADD_AMOUNT:
@@ -148,24 +92,14 @@ def text_handler(message):
 				text = 'Введите число!'
 				return bot.send_message(cid, text)
 			READY_TO_ADD_AMOUNT[uid]['amount'] = int(message.text)
-			text = 'Введите брокера'
-			return bot.send_message(cid, text)
+			text = 'Выберите брокера'
+			keyboard = types.InlineKeyboardMarkup()
+			for x in config.brokers:
+				keyboard.add(types.InlineKeyboardButton(text=config.brokers[x], callback_data=x))
+			return bot.send_message(cid, text, reply_markup=keyboard)
 		if 'broker' not in READY_TO_ADD_AMOUNT[uid]:
-			READY_TO_ADD_AMOUNT[uid]['broker'] = message.text
-			util.DataBase.add_new_amount(
-				uid, int(time.time()), 
-				READY_TO_ADD_AMOUNT[uid]['amount'], 
-				READY_TO_ADD_AMOUNT[uid]['broker'])
-			print(READY_TO_ADD_AMOUNT[uid])
-			del READY_TO_ADD_AMOUNT[uid]
-			text = 'Вы успешно пополнили счет'
-			bot.send_message(cid, text)
-			text = 'Выберите тип операции'
-			markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=1)
-			for x in config.operations_markup:
-				markup.row(*x)
-			markup.row('↩️ Назад')
-			return bot.send_message(cid, text, reply_markup=markup)
+			text = 'Выберите одного из брокеров из списка'
+			return bot.send_message(cid, text)
 	
 	# Обработать состояние вывода средств
 	if uid in READY_TO_MINUS_ACCOUNT:
@@ -182,13 +116,7 @@ def text_handler(message):
 				READY_TO_MINUS_ACCOUNT[uid]['amount'])
 			del READY_TO_MINUS_ACCOUNT[uid]
 			text = 'Вы успешно вывели средства'
-			bot.send_message(cid, text)
-			text = 'Выберите тип операции'
-			markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=1)
-			for x in config.operations_markup:
-				markup.row(*x)
-			markup.row('↩️ Назад')
-			return bot.send_message(cid, text, reply_markup=markup)
+			return bot.send_message(cid, text)
 	
 	# Обработать сотояние удержания налога
 	if uid in READY_TO_TAX:
@@ -199,24 +127,14 @@ def text_handler(message):
 				text = 'Введите число!'
 				return bot.send_message(cid, text)
 			READY_TO_TAX[uid]['amount'] = int(message.text)
-			text = 'Введите брокера'
-			return bot.send_message(cid, text)
+			text = 'Выберите брокера'
+			keyboard = types.InlineKeyboardMarkup()
+			for x in config.brokers:
+				keyboard.add(types.InlineKeyboardButton(text=config.brokers[x], callback_data=x))
+			return bot.send_message(cid, text, reply_markup=keyboard)
 		if 'broker' not in READY_TO_TAX[uid]:
-			READY_TO_TAX[uid]['broker'] = message.text
-			util.DataBase.add_new_tax(
-				uid, int(time.time()), 
-				READY_TO_TAX[uid]['amount'], 
-				READY_TO_TAX[uid]['broker'])
-			print(READY_TO_TAX[uid])
-			del READY_TO_TAX[uid]
-			text = 'Вы успешно оплатили налог'
-			bot.send_message(cid, text)
-			text = 'Выберите тип операции'
-			markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=1)
-			for x in config.operations_markup:
-				markup.row(*x)
-			markup.row('↩️ Назад')
-			return bot.send_message(cid, text, reply_markup=markup)
+			text = 'Выберите одного из брокеров из списка'
+			return bot.send_message(cid, text)
 	
 	# Обработать сотояние удержания комиссии
 	if uid in READY_TO_COMISSION:
@@ -227,24 +145,14 @@ def text_handler(message):
 				text = 'Введите число!'
 				return bot.send_message(cid, text)
 			READY_TO_COMISSION[uid]['amount'] = int(message.text)
-			text = 'Введите брокера'
-			return bot.send_message(cid, text)
+			text = 'Выберите брокера'
+			keyboard = types.InlineKeyboardMarkup()
+			for x in config.brokers:
+				keyboard.add(types.InlineKeyboardButton(text=config.brokers[x], callback_data=x))
+			return bot.send_message(cid, text, reply_markup=keyboard)
 		if 'broker' not in READY_TO_COMISSION[uid]:
-			READY_TO_COMISSION[uid]['broker'] = message.text
-			util.DataBase.add_new_commission(
-				uid, int(time.time()), 
-				READY_TO_COMISSION[uid]['amount'], 
-				READY_TO_COMISSION[uid]['broker'])
-			print(READY_TO_COMISSION[uid])
-			del READY_TO_COMISSION[uid]
-			text = 'Вы успешно оплатили комиссию'
-			bot.send_message(cid, text)
-			text = 'Выберите тип операции'
-			markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=1)
-			for x in config.operations_markup:
-				markup.row(*x)
-			markup.row('↩️ Назад')
-			return bot.send_message(cid, text, reply_markup=markup)
+			text = 'Выберите одного из брокеров из списка'
+			return bot.send_message(cid, text)
 
 	# Обработать сотояние добавления купонного дохода
 	if uid in READY_TO_COUPON_INCOME:
@@ -259,25 +167,14 @@ def text_handler(message):
 				text = 'Введите число!'
 				return bot.send_message(cid, text)
 			READY_TO_COUPON_INCOME[uid]['amount'] = int(message.text)
-			text = 'Введите брокера'
-			return bot.send_message(cid, text)
+			text = 'Выберите брокера'
+			keyboard = types.InlineKeyboardMarkup()
+			for x in config.brokers:
+				keyboard.add(types.InlineKeyboardButton(text=config.brokers[x], callback_data=x))
+			return bot.send_message(cid, text, reply_markup=keyboard)
 		if 'broker' not in READY_TO_COUPON_INCOME[uid]:
-			READY_TO_COUPON_INCOME[uid]['broker'] = message.text
-			util.DataBase.add_new_coupon_income(
-				uid, int(time.time()), 
-				READY_TO_COUPON_INCOME[uid]['bond'],
-				READY_TO_COUPON_INCOME[uid]['amount'], 
-				READY_TO_COUPON_INCOME[uid]['broker'])
-			print(READY_TO_COUPON_INCOME[uid])
-			del READY_TO_COUPON_INCOME[uid]
-			text = 'Вы успешно добавили купонный доход'
-			bot.send_message(cid, text)
-			text = 'Выберите тип операции'
-			markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=1)
-			for x in config.operations_markup:
-				markup.row(*x)
-			markup.row('↩️ Назад')
-			return bot.send_message(cid, text, reply_markup=markup)
+			text = 'Выберите одного из брокеров из списка'
+			return bot.send_message(cid, text)
 		
 	# Обработать сотояние добавления купонного дохода
 	if uid in READY_TO_DIVIDENDS:
@@ -292,10 +189,138 @@ def text_handler(message):
 				text = 'Введите число!'
 				return bot.send_message(cid, text)
 			READY_TO_DIVIDENDS[uid]['amount'] = int(message.text)
-			text = 'Введите брокера'
-			return bot.send_message(cid, text)
+			text = 'Выберите брокера'
+			keyboard = types.InlineKeyboardMarkup()
+			for x in config.brokers:
+				keyboard.add(types.InlineKeyboardButton(text=config.brokers[x], callback_data=x))
+			return bot.send_message(cid, text, reply_markup=keyboard)
 		if 'broker' not in READY_TO_DIVIDENDS[uid]:
-			READY_TO_DIVIDENDS[uid]['broker'] = message.text
+			text = 'Выберите одного из брокеров из списка'
+			return bot.send_message(cid, text)
+
+
+@bot.callback_query_handler(func=lambda call: True)
+def callback_inline(call):
+	uid = call.from_user.id
+	cid = call.message.chat.id
+
+	print(call.data)
+
+	try:
+		bot.answer_callback_query(call.id, 'Выполнено')
+	except Exception as e:
+		print(e)
+
+	if call.data == 'history':
+		text = 'Информация за текущий месяц'
+		keyboard = types.InlineKeyboardMarkup()
+		for x in config.history_markup:
+			keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
+		bot.delete_message(cid, call.message.message_id)
+		return bot.send_message(cid, text, reply_markup=keyboard)
+
+	# Обработать операции
+	if call.data == 'add_amount':
+		bot.delete_message(cid, call.message.message_id)
+		READY_TO_ADD_AMOUNT[uid] = {}
+		text = 'Введите сумму пополнения'
+		return bot.send_message(cid, text)
+	elif call.data == 'minus_amount':
+		bot.delete_message(cid, call.message.message_id)
+		READY_TO_MINUS_ACCOUNT[uid] = {}
+		text = 'Введите сумму, которую хотите вывести'
+		return bot.send_message(cid, text)
+	elif call.data == 'add_aczii':
+		pass
+	elif call.data == 'delete_aczii':
+		pass
+	elif call.data == 'add_oblig':
+		pass
+	elif call.data == 'delete_oblig':
+		pass
+	elif call.data == 'pay_nalog':
+		bot.delete_message(cid, call.message.message_id)
+		READY_TO_TAX[uid] = {}
+		text = 'Введите стоимость налога'
+		return bot.send_message(cid, text)
+	elif call.data == 'pay_comission':
+		bot.delete_message(cid, call.message.message_id)
+		READY_TO_COMISSION[uid] = {}
+		text = 'Введите стоимость комиссии'
+		return bot.send_message(cid, text)
+	if call.data == 'get_cupon':
+		bot.delete_message(cid, call.message.message_id)
+		READY_TO_COUPON_INCOME[uid] = {}
+		text = 'Введите идентификатор облигации, по которой получен доход'
+		return bot.send_message(cid, text)
+	if call.data == 'get_dividends':
+		bot.delete_message(cid, call.message.message_id)
+		READY_TO_DIVIDENDS[uid] = {}
+		text = 'Введите идентификатор пакета акций, по которому получены дивиденды'
+		return bot.send_message(cid, text)
+
+	# Обработать состояние операций
+	if uid in READY_TO_ADD_AMOUNT:
+		if 'broker' not in READY_TO_ADD_AMOUNT[uid]:
+			bot.delete_message(cid, call.message.message_id)
+			READY_TO_ADD_AMOUNT[uid]['broker'] = config.brokers[call.data]
+			util.DataBase.add_new_amount(
+				uid, int(time.time()), 
+				READY_TO_ADD_AMOUNT[uid]['amount'], 
+				READY_TO_ADD_AMOUNT[uid]['broker'])
+			print(READY_TO_ADD_AMOUNT[uid])
+			del READY_TO_ADD_AMOUNT[uid]
+			text = 'Вы успешно пополнили счет'
+			return bot.send_message(cid, text)
+
+	# Обработать сотояние удержания налога
+	if uid in READY_TO_TAX:
+		if 'broker' not in READY_TO_TAX[uid]:
+			bot.delete_message(cid, call.message.message_id)
+			READY_TO_TAX[uid]['broker'] = config.brokers[call.data]
+			util.DataBase.add_new_tax(
+				uid, int(time.time()), 
+				READY_TO_TAX[uid]['amount'], 
+				READY_TO_TAX[uid]['broker'])
+			print(READY_TO_TAX[uid])
+			del READY_TO_TAX[uid]
+			text = 'Вы успешно оплатили налог'
+			return bot.send_message(cid, text)
+
+	# Обработать сотояние удержания комиссии
+	if uid in READY_TO_COMISSION:
+		if 'broker' not in READY_TO_COMISSION[uid]:
+			bot.delete_message(cid, call.message.message_id)
+			READY_TO_COMISSION[uid]['broker'] = config.brokers[call.data]
+			util.DataBase.add_new_commission(
+				uid, int(time.time()), 
+				READY_TO_COMISSION[uid]['amount'], 
+				READY_TO_COMISSION[uid]['broker'])
+			print(READY_TO_COMISSION[uid])
+			del READY_TO_COMISSION[uid]
+			text = 'Вы успешно оплатили комиссию'
+			return bot.send_message(cid, text)
+	
+	# Обработать сотояние добавления купонного дохода
+	if uid in READY_TO_COUPON_INCOME:
+		if 'broker' not in READY_TO_COUPON_INCOME[uid]:
+			bot.delete_message(cid, call.message.message_id)
+			READY_TO_COUPON_INCOME[uid]['broker'] = config.brokers[call.data]
+			util.DataBase.add_new_coupon_income(
+				uid, int(time.time()), 
+				READY_TO_COUPON_INCOME[uid]['bond'],
+				READY_TO_COUPON_INCOME[uid]['amount'], 
+				READY_TO_COUPON_INCOME[uid]['broker'])
+			print(READY_TO_COUPON_INCOME[uid])
+			del READY_TO_COUPON_INCOME[uid]
+			text = 'Вы успешно добавили купонный доход'
+			return bot.send_message(cid, text)
+	
+	# Обработать сотояние добавления купонного дохода
+	if uid in READY_TO_DIVIDENDS:
+		if 'broker' not in READY_TO_DIVIDENDS[uid]:
+			bot.delete_message(cid, call.message.message_id)
+			READY_TO_DIVIDENDS[uid]['broker'] = config.brokers[call.data]
 			util.DataBase.add_new_dividend(
 				uid, int(time.time()), 
 				READY_TO_DIVIDENDS[uid]['dividend'],
@@ -305,12 +330,7 @@ def text_handler(message):
 			del READY_TO_DIVIDENDS[uid]
 			text = 'Вы успешно добавили дивиденд'
 			bot.send_message(cid, text)
-			text = 'Выберите тип операции'
-			markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=1)
-			for x in config.operations_markup:
-				markup.row(*x)
-			markup.row('↩️ Назад')
-			return bot.send_message(cid, text, reply_markup=markup)
+			return bot.send_message(cid, text)
 
 
 def main():

@@ -26,7 +26,7 @@ class DataBase:
 					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`amount` int(11) COLLATE utf8_general_ci NOT NULL,
-					`broker` varchar(11) COLLATE utf8_general_ci,
+					`broker` varchar(255) COLLATE utf8_general_ci,
 					PRIMARY KEY (`id`)
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
 				AUTO_INCREMENT=1;
@@ -50,7 +50,7 @@ class DataBase:
 					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`amount` int(11) COLLATE utf8_general_ci NOT NULL,
-					`broker` varchar(11) COLLATE utf8_general_ci,
+					`broker` varchar(255) COLLATE utf8_general_ci,
 					PRIMARY KEY (`id`)
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
 				AUTO_INCREMENT=1;
@@ -62,7 +62,7 @@ class DataBase:
 					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`amount` int(11) COLLATE utf8_general_ci NOT NULL,
-					`broker` varchar(11) COLLATE utf8_general_ci,
+					`broker` varchar(255) COLLATE utf8_general_ci,
 					PRIMARY KEY (`id`)
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
 				AUTO_INCREMENT=1;
@@ -75,7 +75,7 @@ class DataBase:
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`bond` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`amount` int(11) COLLATE utf8_general_ci NOT NULL,
-					`broker` varchar(11) COLLATE utf8_general_ci,
+					`broker` varchar(255) COLLATE utf8_general_ci,
 					PRIMARY KEY (`id`)
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
 				AUTO_INCREMENT=1;
@@ -88,7 +88,7 @@ class DataBase:
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`dividend` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`amount` int(11) COLLATE utf8_general_ci NOT NULL,
-					`broker` varchar(11) COLLATE utf8_general_ci,
+					`broker` varchar(255) COLLATE utf8_general_ci,
 					PRIMARY KEY (`id`)
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
 				AUTO_INCREMENT=1;
