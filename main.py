@@ -15,7 +15,8 @@ READY_TO_ADD_AMOUNT = {}
 READY_TO_MINUS_ACCOUNT = {}
 READY_TO_BUY_STOCK = {}
 READY_TO_SALE_STOCK = {}
-
+READY_TO_BUY_BOND = {}
+READY_TO_SALE_BOND = {}
 READY_TO_TAX = {}
 READY_TO_COMISSION = {}
 READY_TO_COUPON_INCOME = {}
@@ -124,7 +125,7 @@ def text_handler(message):
 	if uid in READY_TO_BUY_STOCK:
 		if 'ticker' not in READY_TO_BUY_STOCK[uid]:
 			# TODO: сделать выборку цены акции
-			READY_TO_BUY_STOCK[uid]['price'] = 0
+			READY_TO_BUY_STOCK[uid]['api_price'] = 0
 			READY_TO_BUY_STOCK[uid]['ticker'] = message.text
 			text = 'Напишите количество акций для покупки'
 			return bot.send_message(cid, text)
@@ -143,12 +144,28 @@ def text_handler(message):
 		if 'broker' not in READY_TO_BUY_STOCK[uid]:
 			text = 'Выберите одного из брокеров из списка'
 			return bot.send_message(cid, text)
+		if 'price' not in READY_TO_BUY_STOCK[uid]:
+			try:
+				int(message.text)
+			except Exception as e:
+				text = 'Введите число!'
+				return bot.send_message(cid, text)
+			READY_TO_BUY_STOCK[uid]['price'] = int(message.text)
+			util.DataBase.add_buy_stock(
+				uid, int(time.time()),
+				READY_TO_BUY_STOCK[uid]['ticker'],
+				READY_TO_BUY_STOCK[uid]['count'],
+				READY_TO_BUY_STOCK[uid]['broker'],
+				READY_TO_BUY_STOCK[uid]['price'],
+				READY_TO_BUY_STOCK[uid]['api_price'])
+			print(READY_TO_BUY_STOCK[uid])
+			del READY_TO_BUY_STOCK[uid]
+			text = 'Вы успешно купили акцию'
+			return bot.send_message(cid, text)
 
 	# Обработать продажу акции
 	if uid in READY_TO_SALE_STOCK:
 		if 'ticker' not in READY_TO_SALE_STOCK[uid]:
-			# TODO: сделать выборку цены акции
-			READY_TO_SALE_STOCK[uid]['price'] = 0
 			READY_TO_SALE_STOCK[uid]['ticker'] = message.text
 			text = 'Напишите количество акций для продажи'
 			return bot.send_message(cid, text)
@@ -164,7 +181,110 @@ def text_handler(message):
 			for x in config.brokers:
 				keyboard.add(types.InlineKeyboardButton(text=config.brokers[x], callback_data=x))
 			return bot.send_message(cid, text, reply_markup=keyboard)
-		if 'broker' not in READY_TO_TAX[uid]:
+		if 'broker' not in READY_TO_SALE_STOCK[uid]:
+			text = 'Выберите одного из брокеров из списка'
+			return bot.send_message(cid, text)
+		if 'price' not in READY_TO_SALE_STOCK[uid]:
+			try:
+				int(message.text)
+			except Exception as e:
+				text = 'Введите число!'
+				return bot.send_message(cid, text)
+			READY_TO_SALE_STOCK[uid]['price'] = int(message.text)
+			util.DataBase.add_sale_stock(
+				uid, int(time.time()),
+				READY_TO_SALE_STOCK[uid]['ticker'],
+				READY_TO_SALE_STOCK[uid]['count'],
+				READY_TO_SALE_STOCK[uid]['broker'],
+				READY_TO_SALE_STOCK[uid]['price'])
+			print(READY_TO_SALE_STOCK[uid])
+			del READY_TO_SALE_STOCK[uid]
+			text = 'Вы успешно продали акцию'
+			return bot.send_message(cid, text)
+	
+	# Обработать покупку облигации
+	if uid in READY_TO_BUY_BOND:
+		if 'ticker' not in READY_TO_BUY_BOND[uid]:
+			READY_TO_BUY_BOND[uid]['ticker'] = message.text
+			text = 'Введите количество облигаций для покупки'
+			return bot.send_message(cid, text)
+		if 'count' not in READY_TO_BUY_BOND[uid]:
+			try:
+				int(message.text)
+			except Exception as e:
+				text = 'Введите число!'
+				return bot.send_message(cid, text)
+			READY_TO_BUY_BOND[uid]['count'] = int(message.text)
+			text = 'Введите цену облигации'
+			return bot.send_message(cid, text)
+		if 'price' not in READY_TO_BUY_BOND[uid]:
+			try:
+				int(message.text)
+			except Exception as e:
+				text = 'Введите число!'
+				return bot.send_message(cid, text)
+			READY_TO_BUY_BOND[uid]['price'] = int(message.text)
+			text = 'Введите НКД'
+			return bot.send_message(cid, text)
+		if 'nkd' not in READY_TO_BUY_BOND[uid]:
+			try:
+				int(message.text)
+			except Exception as e:
+				text = 'Введите число!'
+				return bot.send_message(cid, text)
+			READY_TO_BUY_BOND[uid]['nkd'] = int(message.text)
+			util.DataBase.add_buy_bond(
+				uid, int(time.time()), 
+				READY_TO_BUY_BOND[uid]['ticker'], 
+				READY_TO_BUY_BOND[uid]['count'],
+				READY_TO_BUY_BOND[uid]['nkd'],
+				READY_TO_BUY_BOND[uid]['price'])
+			print(READY_TO_BUY_BOND[uid])
+			del READY_TO_BUY_BOND[uid]
+			text = 'Вы успешно купили облигации'
+			return bot.send_message(cid, text)
+	
+	# Обработать продажу облигации
+	if uid in READY_TO_SALE_BOND:
+		if 'name' not in READY_TO_SALE_BOND[uid]:
+			READY_TO_SALE_BOND[uid]['name'] = message.text
+			text = 'Введите тикер облигации для покупки'
+			return bot.send_message(cid, text)
+		if 'ticker' not in READY_TO_SALE_BOND[uid]:
+			READY_TO_SALE_BOND[uid]['ticker'] = message.text
+			text = 'Введите количество облигаций'
+			return bot.send_message(cid, text)
+		if 'count' not in READY_TO_SALE_BOND[uid]:
+			try:
+				int(message.text)
+			except Exception as e:
+				text = 'Введите число!'
+				return bot.send_message(cid, text)
+			READY_TO_SALE_BOND[uid]['count'] = message.text
+			text = 'Введите стоимость облигации'
+			return bot.send_message(cid, text)
+		if 'price' not in READY_TO_SALE_BOND[uid]:
+			try:
+				int(message.text)
+			except Exception as e:
+				text = 'Введите число!'
+				return bot.send_message(cid, text)
+			READY_TO_SALE_BOND[uid]['price'] = message.text
+			text = 'Введите НКД'
+			return bot.send_message(cid, text)
+		if 'nkd' not in READY_TO_SALE_BOND[uid]:
+			try:
+				int(message.text)
+			except Exception as e:
+				text = 'Введите число!'
+				return bot.send_message(cid, text)
+			READY_TO_SALE_BOND[uid]['nkd'] = message.text
+			text = 'Выберите брокера'
+			keyboard = types.InlineKeyboardMarkup()
+			for x in config.brokers:
+				keyboard.add(types.InlineKeyboardButton(text=config.brokers[x], callback_data=x))
+			return bot.send_message(cid, text, reply_markup=keyboard)
+		if 'broker' not in READY_TO_SALE_BOND[uid]:
 			text = 'Выберите одного из брокеров из списка'
 			return bot.send_message(cid, text)
 
@@ -291,9 +411,15 @@ def callback_inline(call):
 		text = 'Введите тикер акции для продажи'
 		return bot.send_message(cid, text)
 	elif call.data == 'add_oblig':
-		pass
+		bot.delete_message(cid, call.message.message_id)
+		READY_TO_BUY_BOND[uid] = {}
+		text = 'Введите тикер облигации для покупки'
+		return bot.send_message(cid, text)
 	elif call.data == 'delete_oblig':
-		pass
+		bot.delete_message(cid, call.message.message_id)
+		READY_TO_SALE_BOND[uid] = {}
+		text = 'Введите имя облигации для продажи'
+		return bot.send_message(cid, text)
 	elif call.data == 'pay_nalog':
 		bot.delete_message(cid, call.message.message_id)
 		READY_TO_TAX[uid] = {}
@@ -334,15 +460,7 @@ def callback_inline(call):
 		if 'broker' not in READY_TO_BUY_STOCK[uid]:
 			bot.delete_message(cid, call.message.message_id)
 			READY_TO_BUY_STOCK[uid]['broker'] = config.brokers[call.data]
-			util.DataBase.add_buy_stock(
-				uid, int(time.time()),
-				READY_TO_BUY_STOCK[uid]['ticker'],
-				READY_TO_BUY_STOCK[uid]['count'],
-				READY_TO_BUY_STOCK[uid]['broker'],
-				READY_TO_BUY_STOCK[uid]['price'])
-			print(READY_TO_BUY_STOCK[uid])
-			del READY_TO_BUY_STOCK[uid]
-			text = 'Вы успешно купили акцию'
+			text = 'Введите цену акции'
 			return bot.send_message(cid, text)
 	
 	# Обработать продажу акции
@@ -350,15 +468,25 @@ def callback_inline(call):
 		if 'broker' not in READY_TO_SALE_STOCK[uid]:
 			bot.delete_message(cid, call.message.message_id)
 			READY_TO_SALE_STOCK[uid]['broker'] = config.brokers[call.data]
-			util.DataBase.add_sale_stock(
-				uid, int(time.time()),
-				READY_TO_SALE_STOCK[uid]['ticker'],
-				READY_TO_SALE_STOCK[uid]['count'],
-				READY_TO_SALE_STOCK[uid]['broker'],
-				READY_TO_SALE_STOCK[uid]['price'])
-			print(READY_TO_SALE_STOCK[uid])
-			del READY_TO_SALE_STOCK[uid]
-			text = 'Вы успешно продали акцию'
+			text = 'Введите цену акции'
+			return bot.send_message(cid, text)
+	
+	# Обработать продажу облигации
+	if uid in READY_TO_SALE_BOND:
+		if 'broker' not in READY_TO_SALE_BOND[uid]:
+			bot.delete_message(cid, call.message.message_id)
+			READY_TO_SALE_BOND[uid]['broker'] = config.brokers[call.data]
+			util.DataBase.add_sale_bond(
+				uid, int(time.time()), 
+				READY_TO_SALE_BOND[uid]['name'], 
+				READY_TO_SALE_BOND[uid]['ticker'], 
+				READY_TO_SALE_BOND[uid]['count'],
+				READY_TO_SALE_BOND[uid]['broker'],
+				READY_TO_SALE_BOND[uid]['nkd'],
+				READY_TO_SALE_BOND[uid]['price'])
+			print(READY_TO_SALE_BOND[uid])
+			del READY_TO_SALE_BOND[uid]
+			text = 'Вы успешно продали облигации'
 			return bot.send_message(cid, text)
 
 	# Обработать сотояние удержания налога

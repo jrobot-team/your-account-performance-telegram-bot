@@ -52,6 +52,7 @@ class DataBase:
 					`count` int(11) COLLATE utf8_general_ci NOT NULL,
 					`broker` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`price` int(11) COLLATE utf8_general_ci NOT NULL,
+					`api_price` int(11),
 					PRIMARY KEY (`id`)
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
 				AUTO_INCREMENT=1;
@@ -65,13 +66,43 @@ class DataBase:
 					`ticker` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`count` int(11) COLLATE utf8_general_ci NOT NULL,
 					`broker` varchar(255) COLLATE utf8_general_ci NOT NULL,
-					`price` int(11) COLLATE utf8_general_ci NOT NULL,
+					`price` int(11),
 					PRIMARY KEY (`id`)
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
 				AUTO_INCREMENT=1;
 				'''
 				cursor.execute(sql)
-
+				sql = '''
+				CREATE TABLE IF NOT EXISTS `buy_bond` (
+					`id` int(11) NOT NULL AUTO_INCREMENT,
+					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
+					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`ticker` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`count` int(11) COLLATE utf8_general_ci NOT NULL,
+					`nkd` int(11) NOT NULL,
+					`price` int(11) NOT NULL,
+					`api_price` int(11),
+					PRIMARY KEY (`id`)
+				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
+				AUTO_INCREMENT=1;
+				'''
+				cursor.execute(sql)
+				sql = '''
+				CREATE TABLE IF NOT EXISTS `sale_bond` (
+					`id` int(11) NOT NULL AUTO_INCREMENT,
+					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
+					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`name` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`ticker` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`count` int(11) COLLATE utf8_general_ci NOT NULL,
+					`broker` varchar(255) COLLATE utf8_general_ci,
+					`nkd` int(11) NOT NULL,
+					`price` int(11) NOT NULL,
+					PRIMARY KEY (`id`)
+				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
+				AUTO_INCREMENT=1;
+				'''
+				cursor.execute(sql)
 				sql = '''
 				CREATE TABLE IF NOT EXISTS `taxes` (
 					`id` int(11) NOT NULL AUTO_INCREMENT,
@@ -167,7 +198,7 @@ class DataBase:
 			connection.close()
 	
 	@staticmethod
-	def add_buy_stock(uid, date, ticker, count, broker, price):
+	def add_buy_stock(uid, date, ticker, count, broker, price, api_price=0):
 		"""
 		Покупка акций
 		"""
@@ -180,8 +211,8 @@ class DataBase:
 			cursorclass=pymysql.cursors.DictCursor)
 		try:
 			with connection.cursor() as cursor:
-				sql = 'INSERT INTO `buy_stock` (`uid`, `date`, `ticker`, `count`, `broker`, `price`) VALUES (%s, %s, %s, %s, %s, %s)'
-				cursor.execute(sql, (uid, date, ticker, count, broker, price))
+				sql = 'INSERT INTO `buy_stock` (`uid`, `date`, `ticker`, `count`, `broker`, `price`, `api_price`) VALUES (%s, %s, %s, %s, %s, %s, %s)'
+				cursor.execute(sql, (uid, date, ticker, count, broker, price, api_price))
 			connection.commit()
 		finally:
 			connection.close()
@@ -189,7 +220,7 @@ class DataBase:
 	@staticmethod
 	def add_sale_stock(uid, date, ticker, count, broker, price):
 		"""
-		Покупка акций
+		Продажа акций
 		"""
 		connection = pymysql.connect(
 			host=config.db_host,
@@ -202,6 +233,46 @@ class DataBase:
 			with connection.cursor() as cursor:
 				sql = 'INSERT INTO `sale_stock` (`uid`, `date`, `ticker`, `count`, `broker`, `price`) VALUES (%s, %s, %s, %s, %s, %s)'
 				cursor.execute(sql, (uid, date, ticker, count, broker, price))
+			connection.commit()
+		finally:
+			connection.close()
+
+	@staticmethod
+	def add_buy_bond(uid, date, ticker, count, nkd, price, api_price=0):
+		"""
+		Покупка облигаций
+		"""
+		connection = pymysql.connect(
+			host=config.db_host,
+			user=config.db_user,
+			password=config.db_password,
+			db=config.db_database,
+			charset=config.db_charset,
+			cursorclass=pymysql.cursors.DictCursor)
+		try:
+			with connection.cursor() as cursor:
+				sql = 'INSERT INTO `buy_bond` (`uid`, `date`, `ticker`, `count`, `nkd`, `price`, `api_price`) VALUES (%s, %s, %s, %s, %s, %s, %s)'
+				cursor.execute(sql, (uid, date, ticker, count, nkd, price, api_price))
+			connection.commit()
+		finally:
+			connection.close()
+
+	@staticmethod
+	def add_sale_bond(uid, date, name, ticker, count, broker, nkd, price):
+		"""
+		Продажа облигации
+		"""
+		connection = pymysql.connect(
+			host=config.db_host,
+			user=config.db_user,
+			password=config.db_password,
+			db=config.db_database,
+			charset=config.db_charset,
+			cursorclass=pymysql.cursors.DictCursor)
+		try:
+			with connection.cursor() as cursor:
+				sql = 'INSERT INTO `sale_bond` (`uid`, `date`, `name`, `ticker`, `count`, `broker`, `nkd`, `price`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
+				cursor.execute(sql, (uid, date, name, ticker, count, broker, nkd, price))
 			connection.commit()
 		finally:
 			connection.close()
