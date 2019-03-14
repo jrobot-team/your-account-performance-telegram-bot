@@ -13,6 +13,8 @@ bot = telebot.TeleBot(config.BOT_TOKEN)
 
 READY_TO_ADD_AMOUNT = {}
 READY_TO_MINUS_ACCOUNT = {}
+READY_TO_BUY_STOCK = {}
+READY_TO_SALE_STOCK = {}
 
 READY_TO_TAX = {}
 READY_TO_COMISSION = {}
@@ -83,7 +85,7 @@ def text_handler(message):
 		# keyboard.add(types.InlineKeyboardButton(text='↩️ Назад', callback_data='back'))
 		return bot.send_message(cid, text, reply_markup=keyboard)
 
-	# Обработать состояние операций
+	# Обработать состояние добавления средств
 	if uid in READY_TO_ADD_AMOUNT:
 		if 'amount' not in READY_TO_ADD_AMOUNT[uid]:
 			try:
@@ -118,6 +120,54 @@ def text_handler(message):
 			text = 'Вы успешно вывели средства'
 			return bot.send_message(cid, text)
 	
+	# Обработать покупку акции
+	if uid in READY_TO_BUY_STOCK:
+		if 'ticker' not in READY_TO_BUY_STOCK[uid]:
+			# TODO: сделать выборку цены акции
+			READY_TO_BUY_STOCK[uid]['price'] = 0
+			READY_TO_BUY_STOCK[uid]['ticker'] = message.text
+			text = 'Напишите количество акций для покупки'
+			return bot.send_message(cid, text)
+		if 'count' not in READY_TO_BUY_STOCK[uid]:
+			try:
+				int(message.text)
+			except Exception as e:
+				text = 'Введите число!'
+				return bot.send_message(cid, text)
+			READY_TO_BUY_STOCK[uid]['count'] = int(message.text)
+			text = 'Выберите брокера'
+			keyboard = types.InlineKeyboardMarkup()
+			for x in config.brokers:
+				keyboard.add(types.InlineKeyboardButton(text=config.brokers[x], callback_data=x))
+			return bot.send_message(cid, text, reply_markup=keyboard)
+		if 'broker' not in READY_TO_BUY_STOCK[uid]:
+			text = 'Выберите одного из брокеров из списка'
+			return bot.send_message(cid, text)
+
+	# Обработать продажу акции
+	if uid in READY_TO_SALE_STOCK:
+		if 'ticker' not in READY_TO_SALE_STOCK[uid]:
+			# TODO: сделать выборку цены акции
+			READY_TO_SALE_STOCK[uid]['price'] = 0
+			READY_TO_SALE_STOCK[uid]['ticker'] = message.text
+			text = 'Напишите количество акций для продажи'
+			return bot.send_message(cid, text)
+		if 'count' not in READY_TO_SALE_STOCK[uid]:
+			try:
+				int(message.text)
+			except Exception as e:
+				text = 'Введите число!'
+				return bot.send_message(cid, text)
+			READY_TO_SALE_STOCK[uid]['count'] = int(message.text)
+			text = 'Выберите брокера'
+			keyboard = types.InlineKeyboardMarkup()
+			for x in config.brokers:
+				keyboard.add(types.InlineKeyboardButton(text=config.brokers[x], callback_data=x))
+			return bot.send_message(cid, text, reply_markup=keyboard)
+		if 'broker' not in READY_TO_TAX[uid]:
+			text = 'Выберите одного из брокеров из списка'
+			return bot.send_message(cid, text)
+
 	# Обработать сотояние удержания налога
 	if uid in READY_TO_TAX:
 		if 'amount' not in READY_TO_TAX[uid]:
@@ -231,9 +281,15 @@ def callback_inline(call):
 		text = 'Введите сумму, которую хотите вывести'
 		return bot.send_message(cid, text)
 	elif call.data == 'add_aczii':
-		pass
+		bot.delete_message(cid, call.message.message_id)
+		READY_TO_BUY_STOCK[uid] = {}
+		text = 'Введите тикер акции для покупки'
+		return bot.send_message(cid, text)
 	elif call.data == 'delete_aczii':
-		pass
+		bot.delete_message(cid, call.message.message_id)
+		READY_TO_SALE_STOCK[uid] = {}
+		text = 'Введите тикер акции для продажи'
+		return bot.send_message(cid, text)
 	elif call.data == 'add_oblig':
 		pass
 	elif call.data == 'delete_oblig':
@@ -259,7 +315,7 @@ def callback_inline(call):
 		text = 'Введите идентификатор пакета акций, по которому получены дивиденды'
 		return bot.send_message(cid, text)
 
-	# Обработать состояние операций
+	# Обработать состояние добавления средств
 	if uid in READY_TO_ADD_AMOUNT:
 		if 'broker' not in READY_TO_ADD_AMOUNT[uid]:
 			bot.delete_message(cid, call.message.message_id)
@@ -271,6 +327,38 @@ def callback_inline(call):
 			print(READY_TO_ADD_AMOUNT[uid])
 			del READY_TO_ADD_AMOUNT[uid]
 			text = 'Вы успешно пополнили счет'
+			return bot.send_message(cid, text)
+	
+	# Обработать покупку акции
+	if uid in READY_TO_BUY_STOCK:
+		if 'broker' not in READY_TO_BUY_STOCK[uid]:
+			bot.delete_message(cid, call.message.message_id)
+			READY_TO_BUY_STOCK[uid]['broker'] = config.brokers[call.data]
+			util.DataBase.add_buy_stock(
+				uid, int(time.time()),
+				READY_TO_BUY_STOCK[uid]['ticker'],
+				READY_TO_BUY_STOCK[uid]['count'],
+				READY_TO_BUY_STOCK[uid]['broker'],
+				READY_TO_BUY_STOCK[uid]['price'])
+			print(READY_TO_BUY_STOCK[uid])
+			del READY_TO_BUY_STOCK[uid]
+			text = 'Вы успешно купили акцию'
+			return bot.send_message(cid, text)
+	
+	# Обработать продажу акции
+	if uid in READY_TO_SALE_STOCK:
+		if 'broker' not in READY_TO_SALE_STOCK[uid]:
+			bot.delete_message(cid, call.message.message_id)
+			READY_TO_SALE_STOCK[uid]['broker'] = config.brokers[call.data]
+			util.DataBase.add_sale_stock(
+				uid, int(time.time()),
+				READY_TO_SALE_STOCK[uid]['ticker'],
+				READY_TO_SALE_STOCK[uid]['count'],
+				READY_TO_SALE_STOCK[uid]['broker'],
+				READY_TO_SALE_STOCK[uid]['price'])
+			print(READY_TO_SALE_STOCK[uid])
+			del READY_TO_SALE_STOCK[uid]
+			text = 'Вы успешно продали акцию'
 			return bot.send_message(cid, text)
 
 	# Обработать сотояние удержания налога

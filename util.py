@@ -43,6 +43,34 @@ class DataBase:
 				AUTO_INCREMENT=1;
 				'''
 				cursor.execute(sql)
+				sql = '''
+				CREATE TABLE IF NOT EXISTS `buy_stock` (
+					`id` int(11) NOT NULL AUTO_INCREMENT,
+					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
+					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`ticker` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`count` int(11) COLLATE utf8_general_ci NOT NULL,
+					`broker` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`price` int(11) COLLATE utf8_general_ci NOT NULL,
+					PRIMARY KEY (`id`)
+				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
+				AUTO_INCREMENT=1;
+				'''
+				cursor.execute(sql)
+				sql = '''
+				CREATE TABLE IF NOT EXISTS `sale_stock` (
+					`id` int(11) NOT NULL AUTO_INCREMENT,
+					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
+					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`ticker` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`count` int(11) COLLATE utf8_general_ci NOT NULL,
+					`broker` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`price` int(11) COLLATE utf8_general_ci NOT NULL,
+					PRIMARY KEY (`id`)
+				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
+				AUTO_INCREMENT=1;
+				'''
+				cursor.execute(sql)
 
 				sql = '''
 				CREATE TABLE IF NOT EXISTS `taxes` (
@@ -138,6 +166,46 @@ class DataBase:
 		finally:
 			connection.close()
 	
+	@staticmethod
+	def add_buy_stock(uid, date, ticker, count, broker, price):
+		"""
+		Покупка акций
+		"""
+		connection = pymysql.connect(
+			host=config.db_host,
+			user=config.db_user,
+			password=config.db_password,
+			db=config.db_database,
+			charset=config.db_charset,
+			cursorclass=pymysql.cursors.DictCursor)
+		try:
+			with connection.cursor() as cursor:
+				sql = 'INSERT INTO `buy_stock` (`uid`, `date`, `ticker`, `count`, `broker`, `price`) VALUES (%s, %s, %s, %s, %s, %s)'
+				cursor.execute(sql, (uid, date, ticker, count, broker, price))
+			connection.commit()
+		finally:
+			connection.close()
+
+	@staticmethod
+	def add_sale_stock(uid, date, ticker, count, broker, price):
+		"""
+		Покупка акций
+		"""
+		connection = pymysql.connect(
+			host=config.db_host,
+			user=config.db_user,
+			password=config.db_password,
+			db=config.db_database,
+			charset=config.db_charset,
+			cursorclass=pymysql.cursors.DictCursor)
+		try:
+			with connection.cursor() as cursor:
+				sql = 'INSERT INTO `sale_stock` (`uid`, `date`, `ticker`, `count`, `broker`, `price`) VALUES (%s, %s, %s, %s, %s, %s)'
+				cursor.execute(sql, (uid, date, ticker, count, broker, price))
+			connection.commit()
+		finally:
+			connection.close()
+
 	@staticmethod
 	def add_new_tax(uid, date, amount, broker):
 		"""
