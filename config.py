@@ -1,5 +1,5 @@
 BOT_TOKEN = '613026738:AAFk1_rW2Uab7Kg7h1zhKW6GVBxB-zBc_FA'
-DEBUG = True
+DEBUG = False
 
 # MySql auth data
 # CREATE DATABASE `account_performance` CHARACTER SET utf8 COLLATE utf8_general_ci;
@@ -38,7 +38,7 @@ schet_markup = [
 ]
 
 history_markup = [
-	[{'text': 'За предыдущий месяц', 'callback': 'last_month'}],
-	[{'text': 'За три месяца', 'callback': 'three_months'}],
-	[{'text': 'Все', 'callback': 'all_months'}],
+	[{'text': 'За предыдущий месяц', 'callback': 'history_lastmonth'}],
+	[{'text': 'За три месяца', 'callback': 'history_threemonths'}],
+	[{'text': 'Все', 'callback': 'history_allmonths'}],
 ]

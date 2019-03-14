@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import time
+import datetime
+import dateutil.relativedelta
 
 import telebot
 from telebot import types, apihelper
@@ -205,6 +207,8 @@ def text_handler(message):
 	# Обработать покупку облигации
 	if uid in READY_TO_BUY_BOND:
 		if 'ticker' not in READY_TO_BUY_BOND[uid]:
+			# TODO: сделать выборку цены акции
+			READY_TO_BUY_STOCK[uid]['api_price'] = 0
 			READY_TO_BUY_BOND[uid]['ticker'] = message.text
 			text = 'Введите количество облигаций для покупки'
 			return bot.send_message(cid, text)
@@ -377,19 +381,93 @@ def callback_inline(call):
 	print(call.data)
 
 	try:
-		bot.answer_callback_query(call.id, 'Выполнено')
+		bot.answer_callback_query(call.id, '✅ Выполнено')
 	except Exception as e:
 		print(e)
 
-	if call.data == 'history':
-		text = 'Информация за текущий месяц'
+	# Обработать истории операций
+	if call.data.startswith('history'):
+		time_data = call.data.split('_')
+		# Операции за текущий месяц
+		if len(time_data) == 1:
+			start_timestamp = datetime.datetime.now()
+			d2 = start_timestamp - dateutil.relativedelta.relativedelta(months=1)
+			end_timestamp = int(d2.timestamp())
+		# Операции за прошлый месяц
+		elif time_data[1] == 'lastmonth':
+			d = datetime.datetime.now()
+			start_timestamp = d - dateutil.relativedelta.relativedelta(months=1)
+			d2 = start_timestamp - dateutil.relativedelta.relativedelta(months=1)
+			start_timestamp = int(start_timestamp.timestamp())
+			end_timestamp = int(d2.timestamp())
+		# Операции за 3 месяца
+		elif time_data[1] == 'threemonths':
+			start_timestamp = datetime.datetime.now()
+			d2 = start_timestamp - dateutil.relativedelta.relativedelta(months=3)
+			end_timestamp = int(d2.timestamp())
+		# Операции за все время
+		elif time_data[1] == 'allmonths':
+			start_timestamp = datetime.datetime.now()
+			end_timestamp = 0
+	
+		operations = util.get_history(uid, start_timestamp, end_timestamp)
+		print(operations)
+
+		if len(operations) == 0:
+			text = 'Вы ещё не совершили ни одной операции за это время'
+			bot.edit_message_text(text, cid, call.message.message_id)
+
+		for x in operations:
+			_date = datetime.datetime.utcfromtimestamp(int(x['date'])).strftime('%Y.%m.%d  %H:%M:%S')
+			text = 'Операция: {!s}\nДата: {!s}\n'.format(x['title'], _date)
+
+			if x['table'] == 'account_amount':
+				text += 'Сумма: {!s}\nБрокер: {!s}'.format(x['amount'], x['broker'])
+			if x['table'] == 'account_minus_amount':
+				text += 'Сумма: {!s}'.format(x['amount'])
+			if x['table'] == 'buy_stock':
+				text += 'Тикер: {!s}\nКол-во: {!s}\nБрокер: {!s}\nЦена: {!s}'.format(
+					x['ticker'], x['count'], x['broker'], x['price'])
+			if x['table'] == 'sale_stock':
+				text += 'Тикер: {!s}\nКол-во: {!s}\nБрокер: {!s}\nЦена: {!s}'.format(
+					x['ticker'], x['count'], x['broker'], x['price'])
+			if x['table'] == 'buy_bond':
+				text += 'Тикер: {!s}\nКол-во: {!s}\nНКД: {!s}\nЦена: {!s}'.format(
+					x['ticker'], x['count'], x['nkd'], x['price'])
+			if x['table'] == 'sale_bond':
+				text += 'Номер: {!s}\nТикер: {!s}\nКол-во: {!s}\nБрокер: {!s}\nНКД: {!s}\nЦена: {!s}'.format(
+					x['name'], x['ticker'], x['count'], x['nkd'], x['nkd'], x['price'])
+			if x['table'] == 'taxes':
+				text += 'Сумма: {!s}\nБрокер: {!s}'.format(x['amount'], x['broker'])
+			if x['table'] == 'comissions':
+				text += 'Сумма: {!s}\nБрокер: {!s}'.format(x['amount'], x['broker'])
+			if x['table'] == 'coupon_income':
+				text += 'Идентификатор облигации: {!s}\nСумма: {!s}\nБрокер: {!s}'.format(
+					x['bond'], x['amount'], x['broker'])
+			if x['table'] == 'dividends':
+				text += 'Идентификатор акции: {!s}\nСумма: {!s}\nБрокер: {!s}'.format(
+					x['dividend'], x['amount'], x['broker'])
+
+			keyboard = types.InlineKeyboardMarkup()
+			cb = 'delop-{!s}-{!s}'.format(x['table'], x['id'])
+			keyboard.add(types.InlineKeyboardButton(text='⛔ Удалить', callback_data=cb))
+			bot.send_message(cid, text, reply_markup=keyboard)
+
+		text = 'Вы можете посмотреть операции за другой промежуток времени'
 		keyboard = types.InlineKeyboardMarkup()
 		for x in config.history_markup:
 			keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
-		bot.delete_message(cid, call.message.message_id)
 		return bot.send_message(cid, text, reply_markup=keyboard)
 
-	# Обработать операции
+	# Обработать удаление операций
+	if call.data.startswith('delop'):
+		arr = call.data.split('-')
+		print(arr)
+		util.DataBase.delete_operation(arr[1], uid, arr[2])		
+		text = 'Операция успешно удалена'
+		return bot.edit_message_text(text, cid, call.message.message_id)
+
+	# Обработать кнопки выбора операции
 	if call.data == 'add_amount':
 		bot.delete_message(cid, call.message.message_id)
 		READY_TO_ADD_AMOUNT[uid] = {}

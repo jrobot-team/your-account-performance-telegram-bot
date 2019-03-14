@@ -1,3 +1,5 @@
+from operator import itemgetter
+
 import requests
 import pymysql.cursors
 
@@ -356,3 +358,124 @@ class DataBase:
 			connection.commit()
 		finally:
 			connection.close()
+
+	@staticmethod
+	def delete_operation(table, uid, id):
+		"""
+		Удалить операцию
+		"""
+		connection = pymysql.connect(
+			host=config.db_host,
+			user=config.db_user,
+			password=config.db_password,
+			db=config.db_database,
+			charset=config.db_charset,
+			cursorclass=pymysql.cursors.DictCursor)
+		try:
+			with connection.cursor() as cursor:
+				sql = 'DELETE FROM {!s} WHERE uid=%s AND id=%s' .format(table)
+				cursor.execute(sql, (uid, id))
+			connection.commit()
+		finally:
+			connection.close()
+
+
+def get_history(uid, start_timestamp, end_timestamp):
+	"""
+	Получить историю операций в виде сообщений
+	"""
+	connection = pymysql.connect(
+		host=config.db_host,
+		user=config.db_user,
+		password=config.db_password,
+		db=config.db_database,
+		charset=config.db_charset,
+		cursorclass=pymysql.cursors.DictCursor)
+	try:
+		operations = []
+		with connection.cursor() as cursor:
+
+			sql = 'SELECT * FROM account_amount WHERE uid=%s AND date < %s AND date > %s'
+			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
+			res = cursor.fetchall()
+			for x in res:
+				operations.append(x)
+				operations[-1]['title'] = 'Пополнение счета'
+				operations[-1]['table'] = 'account_amount'
+			
+			sql = 'SELECT * FROM account_minus_amount WHERE uid=%s AND date < %s AND date > %s'
+			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
+			res = cursor.fetchall()
+			for x in res:
+				operations.append(x)
+				operations[-1]['title'] = 'Вывод средств'
+				operations[-1]['table'] = 'account_minus_amount'
+			
+			sql = 'SELECT * FROM buy_stock WHERE uid=%s AND date < %s AND date > %s'
+			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
+			res = cursor.fetchall()
+			for x in res:
+				operations.append(x)
+				operations[-1]['title'] = 'Покупка акций'
+				operations[-1]['table'] = 'buy_stock'
+			
+			sql = 'SELECT * FROM sale_stock WHERE uid=%s AND date < %s AND date > %s'
+			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
+			res = cursor.fetchall()
+			for x in res:
+				operations.append(x)
+				operations[-1]['title'] = 'Продажа акций'
+				operations[-1]['table'] = 'sale_stock'
+			
+			sql = 'SELECT * FROM buy_bond WHERE uid=%s AND date < %s AND date > %s'
+			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
+			res = cursor.fetchall()
+			for x in res:
+				operations.append(x)
+				operations[-1]['title'] = 'Покупка облигаций'
+				operations[-1]['table'] = 'buy_bond'
+			
+			sql = 'SELECT * FROM sale_bond WHERE uid=%s AND date < %s AND date > %s'
+			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
+			res = cursor.fetchall()
+			for x in res:
+				operations.append(x)
+				operations[-1]['title'] = 'Продажа облигаций'
+				operations[-1]['table'] = 'sale_bond'
+			
+			sql = 'SELECT * FROM taxes WHERE uid=%s AND date < %s AND date > %s'
+			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
+			res = cursor.fetchall()
+			for x in res:
+				operations.append(x)
+				operations[-1]['title'] = 'Оплата налога'
+				operations[-1]['table'] = 'taxes'
+			
+			sql = 'SELECT * FROM comissions WHERE uid=%s AND date < %s AND date > %s'
+			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
+			res = cursor.fetchall()
+			for x in res:
+				operations.append(x)
+				operations[-1]['title'] = 'Оплата комиссии'
+				operations[-1]['table'] = 'comissions'
+			
+			sql = 'SELECT * FROM coupon_income WHERE uid=%s AND date < %s AND date > %s'
+			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
+			res = cursor.fetchall()
+			for x in res:
+				operations.append(x)
+				operations[-1]['title'] = 'Получение купонного дохода'
+				operations[-1]['table'] = 'coupon_income'
+			
+			sql = 'SELECT * FROM dividends WHERE uid=%s AND date < %s AND date > %s'
+			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
+			res = cursor.fetchall()
+			for x in res:
+				operations.append(x)
+				operations[-1]['title'] = 'Получение дивидендов'
+				operations[-1]['table'] = 'dividends'
+
+		connection.commit()
+		return sorted(operations, key=itemgetter('date'), reverse=False)
+	finally:
+		connection.close()
