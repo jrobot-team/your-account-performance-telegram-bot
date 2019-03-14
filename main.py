@@ -78,14 +78,12 @@ def text_handler(message):
 		keyboard = types.InlineKeyboardMarkup()
 		for x in config.operations_markup:
 			keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
-		# keyboard.add(types.InlineKeyboardButton(text='↩️ Назад', callback_data='back'))
 		return bot.send_message(cid, text, reply_markup=keyboard)
 	elif message.text == 'Счет и портфель' or message.text == '⤴️ Назад':
 		text = 'Счет и портфель'  # TODO: информация о портфеле
 		keyboard = types.InlineKeyboardMarkup()
 		for x in config.schet_markup:
 			keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
-		# keyboard.add(types.InlineKeyboardButton(text='↩️ Назад', callback_data='back'))
 		return bot.send_message(cid, text, reply_markup=keyboard)
 
 	# Обработать состояние добавления средств
@@ -115,14 +113,15 @@ def text_handler(message):
 				text = 'Введите число!'
 				return bot.send_message(cid, text)
 			READY_TO_MINUS_ACCOUNT[uid]['amount'] = message.text
-			print(READY_TO_MINUS_ACCOUNT[uid])
-			util.DataBase.add_minus_amount(
-				uid, int(time.time()), 
-				READY_TO_MINUS_ACCOUNT[uid]['amount'])
-			del READY_TO_MINUS_ACCOUNT[uid]
-			text = 'Вы успешно вывели средства'
+			text = 'Выберите брокера'
+			keyboard = types.InlineKeyboardMarkup()
+			for x in config.brokers:
+				keyboard.add(types.InlineKeyboardButton(text=config.brokers[x], callback_data=x))
+			return bot.send_message(cid, text, reply_markup=keyboard)
+		if 'broker' not in READY_TO_MINUS_ACCOUNT[uid]:
+			text = 'Выберите одного из брокеров из списка'
 			return bot.send_message(cid, text)
-	
+
 	# Обработать покупку акции
 	if uid in READY_TO_BUY_STOCK:
 		if 'ticker' not in READY_TO_BUY_STOCK[uid]:
@@ -163,7 +162,12 @@ def text_handler(message):
 			print(READY_TO_BUY_STOCK[uid])
 			del READY_TO_BUY_STOCK[uid]
 			text = 'Вы успешно купили акцию'
-			return bot.send_message(cid, text)
+			bot.send_message(cid, text)
+			text = 'Выберите тип операции'
+			keyboard = types.InlineKeyboardMarkup()
+			for x in config.operations_markup:
+				keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
+			return bot.send_message(cid, text, reply_markup=keyboard)
 
 	# Обработать продажу акции
 	if uid in READY_TO_SALE_STOCK:
@@ -202,7 +206,12 @@ def text_handler(message):
 			print(READY_TO_SALE_STOCK[uid])
 			del READY_TO_SALE_STOCK[uid]
 			text = 'Вы успешно продали акцию'
-			return bot.send_message(cid, text)
+			bot.send_message(cid, text)
+			text = 'Выберите тип операции'
+			keyboard = types.InlineKeyboardMarkup()
+			for x in config.operations_markup:
+				keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
+			return bot.send_message(cid, text, reply_markup=keyboard)
 	
 	# Обработать покупку облигации
 	if uid in READY_TO_BUY_BOND:
@@ -246,7 +255,12 @@ def text_handler(message):
 			print(READY_TO_BUY_BOND[uid])
 			del READY_TO_BUY_BOND[uid]
 			text = 'Вы успешно купили облигации'
-			return bot.send_message(cid, text)
+			bot.send_message(cid, text)
+			text = 'Выберите тип операции'
+			keyboard = types.InlineKeyboardMarkup()
+			for x in config.operations_markup:
+				keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
+			return bot.send_message(cid, text, reply_markup=keyboard)
 	
 	# Обработать продажу облигации
 	if uid in READY_TO_SALE_BOND:
@@ -381,7 +395,7 @@ def callback_inline(call):
 	print(call.data)
 
 	try:
-		bot.answer_callback_query(call.id, '✅ Выполнено')
+		bot.answer_callback_query(call.id, 'Выполнено')
 	except Exception as e:
 		print(e)
 
@@ -424,7 +438,7 @@ def callback_inline(call):
 			if x['table'] == 'account_amount':
 				text += 'Сумма: {!s}\nБрокер: {!s}'.format(x['amount'], x['broker'])
 			if x['table'] == 'account_minus_amount':
-				text += 'Сумма: {!s}'.format(x['amount'])
+				text += 'Сумма: {!s}\nБрокер: {!s}'.format(x['amount'], x['broker'])
 			if x['table'] == 'buy_stock':
 				text += 'Тикер: {!s}\nКол-во: {!s}\nБрокер: {!s}\nЦена: {!s}'.format(
 					x['ticker'], x['count'], x['broker'], x['price'])
@@ -442,10 +456,10 @@ def callback_inline(call):
 			if x['table'] == 'comissions':
 				text += 'Сумма: {!s}\nБрокер: {!s}'.format(x['amount'], x['broker'])
 			if x['table'] == 'coupon_income':
-				text += 'Идентификатор облигации: {!s}\nСумма: {!s}\nБрокер: {!s}'.format(
+				text += 'Тикер: {!s}\nСумма: {!s}\nБрокер: {!s}'.format(
 					x['bond'], x['amount'], x['broker'])
 			if x['table'] == 'dividends':
-				text += 'Идентификатор акции: {!s}\nСумма: {!s}\nБрокер: {!s}'.format(
+				text += 'Тикер: {!s}\nСумма: {!s}\nБрокер: {!s}'.format(
 					x['dividend'], x['amount'], x['broker'])
 
 			keyboard = types.InlineKeyboardMarkup()
@@ -511,12 +525,12 @@ def callback_inline(call):
 	if call.data == 'get_cupon':
 		bot.delete_message(cid, call.message.message_id)
 		READY_TO_COUPON_INCOME[uid] = {}
-		text = 'Введите идентификатор облигации, по которой получен доход'
+		text = 'Введите тикер, по которой получен доход'
 		return bot.send_message(cid, text)
 	if call.data == 'get_dividends':
 		bot.delete_message(cid, call.message.message_id)
 		READY_TO_DIVIDENDS[uid] = {}
-		text = 'Введите идентификатор пакета акций, по которому получены дивиденды'
+		text = 'Введите тикер, по которому получены дивиденды'
 		return bot.send_message(cid, text)
 
 	# Обработать состояние добавления средств
@@ -531,8 +545,31 @@ def callback_inline(call):
 			print(READY_TO_ADD_AMOUNT[uid])
 			del READY_TO_ADD_AMOUNT[uid]
 			text = 'Вы успешно пополнили счет'
-			return bot.send_message(cid, text)
+			bot.send_message(cid, text)
+			text = 'Выберите тип операции'
+			keyboard = types.InlineKeyboardMarkup()
+			for x in config.operations_markup:
+				keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
+			return bot.send_message(cid, text, reply_markup=keyboard)
 	
+	if uid in READY_TO_MINUS_ACCOUNT:
+		if 'broker' not in READY_TO_MINUS_ACCOUNT[uid]:
+			bot.delete_message(cid, call.message.message_id)
+			READY_TO_MINUS_ACCOUNT[uid]['broker'] = config.brokers[call.data]
+			print(READY_TO_MINUS_ACCOUNT[uid])
+			util.DataBase.add_minus_amount(
+				uid, int(time.time()), 
+				READY_TO_MINUS_ACCOUNT[uid]['amount'],
+				READY_TO_MINUS_ACCOUNT[uid]['broker'])
+			del READY_TO_MINUS_ACCOUNT[uid]
+			text = 'Вы успешно вывели средства'
+			bot.send_message(cid, text)
+			text = 'Выберите тип операции'
+			keyboard = types.InlineKeyboardMarkup()
+			for x in config.operations_markup:
+				keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
+			return bot.send_message(cid, text, reply_markup=keyboard)
+
 	# Обработать покупку акции
 	if uid in READY_TO_BUY_STOCK:
 		if 'broker' not in READY_TO_BUY_STOCK[uid]:
@@ -565,7 +602,12 @@ def callback_inline(call):
 			print(READY_TO_SALE_BOND[uid])
 			del READY_TO_SALE_BOND[uid]
 			text = 'Вы успешно продали облигации'
-			return bot.send_message(cid, text)
+			bot.send_message(cid, text)
+			text = 'Выберите тип операции'
+			keyboard = types.InlineKeyboardMarkup()
+			for x in config.operations_markup:
+				keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
+			return bot.send_message(cid, text, reply_markup=keyboard)
 
 	# Обработать сотояние удержания налога
 	if uid in READY_TO_TAX:
@@ -579,7 +621,12 @@ def callback_inline(call):
 			print(READY_TO_TAX[uid])
 			del READY_TO_TAX[uid]
 			text = 'Вы успешно оплатили налог'
-			return bot.send_message(cid, text)
+			bot.send_message(cid, text)
+			text = 'Выберите тип операции'
+			keyboard = types.InlineKeyboardMarkup()
+			for x in config.operations_markup:
+				keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
+			return bot.send_message(cid, text, reply_markup=keyboard)
 
 	# Обработать сотояние удержания комиссии
 	if uid in READY_TO_COMISSION:
@@ -593,7 +640,12 @@ def callback_inline(call):
 			print(READY_TO_COMISSION[uid])
 			del READY_TO_COMISSION[uid]
 			text = 'Вы успешно оплатили комиссию'
-			return bot.send_message(cid, text)
+			bot.send_message(cid, text)
+			text = 'Выберите тип операции'
+			keyboard = types.InlineKeyboardMarkup()
+			for x in config.operations_markup:
+				keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
+			return bot.send_message(cid, text, reply_markup=keyboard)
 	
 	# Обработать сотояние добавления купонного дохода
 	if uid in READY_TO_COUPON_INCOME:
@@ -608,7 +660,12 @@ def callback_inline(call):
 			print(READY_TO_COUPON_INCOME[uid])
 			del READY_TO_COUPON_INCOME[uid]
 			text = 'Вы успешно добавили купонный доход'
-			return bot.send_message(cid, text)
+			bot.send_message(cid, text)
+			text = 'Выберите тип операции'
+			keyboard = types.InlineKeyboardMarkup()
+			for x in config.operations_markup:
+				keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
+			return bot.send_message(cid, text, reply_markup=keyboard)
 	
 	# Обработать сотояние добавления купонного дохода
 	if uid in READY_TO_DIVIDENDS:
@@ -624,7 +681,11 @@ def callback_inline(call):
 			del READY_TO_DIVIDENDS[uid]
 			text = 'Вы успешно добавили дивиденд'
 			bot.send_message(cid, text)
-			return bot.send_message(cid, text)
+			text = 'Выберите тип операции'
+			keyboard = types.InlineKeyboardMarkup()
+			for x in config.operations_markup:
+				keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
+			return bot.send_message(cid, text, reply_markup=keyboard)
 
 
 def main():
