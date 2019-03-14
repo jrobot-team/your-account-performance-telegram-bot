@@ -208,7 +208,7 @@ def text_handler(message):
 	if uid in READY_TO_BUY_BOND:
 		if 'ticker' not in READY_TO_BUY_BOND[uid]:
 			# TODO: сделать выборку цены акции
-			READY_TO_BUY_STOCK[uid]['api_price'] = 0
+			READY_TO_BUY_BOND[uid]['api_price'] = 0
 			READY_TO_BUY_BOND[uid]['ticker'] = message.text
 			text = 'Введите количество облигаций для покупки'
 			return bot.send_message(cid, text)
