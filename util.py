@@ -1,7 +1,6 @@
 import datetime
 from operator import itemgetter
 
-import pandas as pd
 import requests
 import pymysql.cursors
 
