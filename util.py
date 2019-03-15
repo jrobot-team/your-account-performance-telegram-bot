@@ -1,5 +1,7 @@
+import datetime
 from operator import itemgetter
 
+import pandas as pd
 import requests
 import pymysql.cursors
 
@@ -23,7 +25,7 @@ class DataBase:
 		try:
 			with connection.cursor() as cursor:
 				sql = '''
-				CREATE TABLE IF NOT EXISTS `account_amount` (
+				CREATE TABLE IF NOT EXISTS `accountamount` (
 					`id` int(11) NOT NULL AUTO_INCREMENT,
 					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
@@ -35,7 +37,7 @@ class DataBase:
 				'''
 				cursor.execute(sql)
 				sql = '''
-				CREATE TABLE IF NOT EXISTS `account_minus_amount` (
+				CREATE TABLE IF NOT EXISTS `accountminusamount` (
 					`id` int(11) NOT NULL AUTO_INCREMENT,
 					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
@@ -47,7 +49,7 @@ class DataBase:
 				'''
 				cursor.execute(sql)
 				sql = '''
-				CREATE TABLE IF NOT EXISTS `buy_stock` (
+				CREATE TABLE IF NOT EXISTS `buystock` (
 					`id` int(11) NOT NULL AUTO_INCREMENT,
 					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
@@ -62,7 +64,7 @@ class DataBase:
 				'''
 				cursor.execute(sql)
 				sql = '''
-				CREATE TABLE IF NOT EXISTS `sale_stock` (
+				CREATE TABLE IF NOT EXISTS `salestock` (
 					`id` int(11) NOT NULL AUTO_INCREMENT,
 					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
@@ -76,7 +78,7 @@ class DataBase:
 				'''
 				cursor.execute(sql)
 				sql = '''
-				CREATE TABLE IF NOT EXISTS `buy_bond` (
+				CREATE TABLE IF NOT EXISTS `buybond` (
 					`id` int(11) NOT NULL AUTO_INCREMENT,
 					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
@@ -91,7 +93,7 @@ class DataBase:
 				'''
 				cursor.execute(sql)
 				sql = '''
-				CREATE TABLE IF NOT EXISTS `sale_bond` (
+				CREATE TABLE IF NOT EXISTS `salebond` (
 					`id` int(11) NOT NULL AUTO_INCREMENT,
 					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
@@ -131,7 +133,7 @@ class DataBase:
 				'''
 				cursor.execute(sql)
 				sql = '''
-				CREATE TABLE IF NOT EXISTS `coupon_income` (
+				CREATE TABLE IF NOT EXISTS `couponincome` (
 					`id` int(11) NOT NULL AUTO_INCREMENT,
 					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
@@ -174,7 +176,7 @@ class DataBase:
 			cursorclass=pymysql.cursors.DictCursor)
 		try:
 			with connection.cursor() as cursor:
-				sql = 'INSERT INTO `account_amount` (`uid`, `date`, `amount`, `broker`) VALUES (%s, %s, %s, %s)'
+				sql = 'INSERT INTO `accountamount` (`uid`, `date`, `amount`, `broker`) VALUES (%s, %s, %s, %s)'
 				cursor.execute(sql, (uid, date, amount, broker))
 			connection.commit()
 		finally:
@@ -194,14 +196,14 @@ class DataBase:
 			cursorclass=pymysql.cursors.DictCursor)
 		try:
 			with connection.cursor() as cursor:
-				sql = 'INSERT INTO `account_minus_amount` (`uid`, `date`, `amount`, `broker`) VALUES (%s, %s, %s, %s)'
+				sql = 'INSERT INTO `accountminusamount` (`uid`, `date`, `amount`, `broker`) VALUES (%s, %s, %s, %s)'
 				cursor.execute(sql, (uid, date, amount, broker))
 			connection.commit()
 		finally:
 			connection.close()
 	
 	@staticmethod
-	def add_buy_stock(uid, date, ticker, count, broker, price, api_price=0):
+	def add_buystock(uid, date, ticker, count, broker, price, api_price=0):
 		"""
 		Покупка акций
 		"""
@@ -214,14 +216,14 @@ class DataBase:
 			cursorclass=pymysql.cursors.DictCursor)
 		try:
 			with connection.cursor() as cursor:
-				sql = 'INSERT INTO `buy_stock` (`uid`, `date`, `ticker`, `count`, `broker`, `price`, `api_price`) VALUES (%s, %s, %s, %s, %s, %s, %s)'
+				sql = 'INSERT INTO `buystock` (`uid`, `date`, `ticker`, `count`, `broker`, `price`, `api_price`) VALUES (%s, %s, %s, %s, %s, %s, %s)'
 				cursor.execute(sql, (uid, date, ticker, count, broker, price, api_price))
 			connection.commit()
 		finally:
 			connection.close()
 
 	@staticmethod
-	def add_sale_stock(uid, date, ticker, count, broker, price):
+	def add_salestock(uid, date, ticker, count, broker, price):
 		"""
 		Продажа акций
 		"""
@@ -234,14 +236,14 @@ class DataBase:
 			cursorclass=pymysql.cursors.DictCursor)
 		try:
 			with connection.cursor() as cursor:
-				sql = 'INSERT INTO `sale_stock` (`uid`, `date`, `ticker`, `count`, `broker`, `price`) VALUES (%s, %s, %s, %s, %s, %s)'
+				sql = 'INSERT INTO `salestock` (`uid`, `date`, `ticker`, `count`, `broker`, `price`) VALUES (%s, %s, %s, %s, %s, %s)'
 				cursor.execute(sql, (uid, date, ticker, count, broker, price))
 			connection.commit()
 		finally:
 			connection.close()
 
 	@staticmethod
-	def add_buy_bond(uid, date, ticker, count, nkd, price, api_price=0):
+	def add_buybond(uid, date, ticker, count, nkd, price, api_price=0):
 		"""
 		Покупка облигаций
 		"""
@@ -254,14 +256,14 @@ class DataBase:
 			cursorclass=pymysql.cursors.DictCursor)
 		try:
 			with connection.cursor() as cursor:
-				sql = 'INSERT INTO `buy_bond` (`uid`, `date`, `ticker`, `count`, `nkd`, `price`, `api_price`) VALUES (%s, %s, %s, %s, %s, %s, %s)'
+				sql = 'INSERT INTO `buybond` (`uid`, `date`, `ticker`, `count`, `nkd`, `price`, `api_price`) VALUES (%s, %s, %s, %s, %s, %s, %s)'
 				cursor.execute(sql, (uid, date, ticker, count, nkd, price, api_price))
 			connection.commit()
 		finally:
 			connection.close()
 
 	@staticmethod
-	def add_sale_bond(uid, date, name, ticker, count, broker, nkd, price):
+	def add_salebond(uid, date, name, ticker, count, broker, nkd, price):
 		"""
 		Продажа облигации
 		"""
@@ -274,7 +276,7 @@ class DataBase:
 			cursorclass=pymysql.cursors.DictCursor)
 		try:
 			with connection.cursor() as cursor:
-				sql = 'INSERT INTO `sale_bond` (`uid`, `date`, `name`, `ticker`, `count`, `broker`, `nkd`, `price`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
+				sql = 'INSERT INTO `salebond` (`uid`, `date`, `name`, `ticker`, `count`, `broker`, `nkd`, `price`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
 				cursor.execute(sql, (uid, date, name, ticker, count, broker, nkd, price))
 			connection.commit()
 		finally:
@@ -321,7 +323,7 @@ class DataBase:
 			connection.close()
 
 	@staticmethod
-	def add_new_coupon_income(uid, date, bond, amount, broker):
+	def add_new_couponincome(uid, date, bond, amount, broker):
 		"""
 		Купонный доход
 		"""
@@ -334,7 +336,7 @@ class DataBase:
 			cursorclass=pymysql.cursors.DictCursor)
 		try:
 			with connection.cursor() as cursor:
-				sql = 'INSERT INTO `coupon_income` (`uid`, `date`, `bond`, `amount`, `broker`) VALUES (%s, %s, %s, %s, %s)'
+				sql = 'INSERT INTO `couponincome` (`uid`, `date`, `bond`, `amount`, `broker`) VALUES (%s, %s, %s, %s, %s)'
 				cursor.execute(sql, (uid, date, bond, amount, broker))
 			connection.commit()
 		finally:
@@ -379,6 +381,31 @@ class DataBase:
 			connection.commit()
 		finally:
 			connection.close()
+	
+	@staticmethod
+	def get_operation(table, uid, id):
+		"""
+		Получить операцию
+		"""
+		connection = pymysql.connect(
+			host=config.db_host,
+			user=config.db_user,
+			password=config.db_password,
+			db=config.db_database,
+			charset=config.db_charset,
+			cursorclass=pymysql.cursors.DictCursor)
+		try:
+			with connection.cursor() as cursor:
+				sql = 'SELECT * FROM {!s} WHERE uid=%s AND id=%s' .format(table)
+				cursor.execute(sql, (uid, id))
+				res = cursor.fetchone()
+				return res
+			connection.commit()
+		except:
+			return None
+		finally:
+			connection.close()
+		return None
 
 
 def get_history(uid, start_timestamp, end_timestamp):
@@ -396,53 +423,53 @@ def get_history(uid, start_timestamp, end_timestamp):
 		operations = []
 		with connection.cursor() as cursor:
 
-			sql = 'SELECT * FROM account_amount WHERE uid=%s AND date < %s AND date > %s'
+			sql = 'SELECT * FROM accountamount WHERE uid=%s AND date < %s AND date > %s'
 			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
 			res = cursor.fetchall()
 			for x in res:
 				operations.append(x)
 				operations[-1]['title'] = 'Пополнение счета'
-				operations[-1]['table'] = 'account_amount'
+				operations[-1]['table'] = 'accountamount'
 			
-			sql = 'SELECT * FROM account_minus_amount WHERE uid=%s AND date < %s AND date > %s'
+			sql = 'SELECT * FROM accountminusamount WHERE uid=%s AND date < %s AND date > %s'
 			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
 			res = cursor.fetchall()
 			for x in res:
 				operations.append(x)
 				operations[-1]['title'] = 'Вывод средств'
-				operations[-1]['table'] = 'account_minus_amount'
+				operations[-1]['table'] = 'accountminusamount'
 			
-			sql = 'SELECT * FROM buy_stock WHERE uid=%s AND date < %s AND date > %s'
+			sql = 'SELECT * FROM buystock WHERE uid=%s AND date < %s AND date > %s'
 			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
 			res = cursor.fetchall()
 			for x in res:
 				operations.append(x)
 				operations[-1]['title'] = 'Покупка акций'
-				operations[-1]['table'] = 'buy_stock'
+				operations[-1]['table'] = 'buystock'
 			
-			sql = 'SELECT * FROM sale_stock WHERE uid=%s AND date < %s AND date > %s'
+			sql = 'SELECT * FROM salestock WHERE uid=%s AND date < %s AND date > %s'
 			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
 			res = cursor.fetchall()
 			for x in res:
 				operations.append(x)
 				operations[-1]['title'] = 'Продажа акций'
-				operations[-1]['table'] = 'sale_stock'
+				operations[-1]['table'] = 'salestock'
 			
-			sql = 'SELECT * FROM buy_bond WHERE uid=%s AND date < %s AND date > %s'
+			sql = 'SELECT * FROM buybond WHERE uid=%s AND date < %s AND date > %s'
 			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
 			res = cursor.fetchall()
 			for x in res:
 				operations.append(x)
 				operations[-1]['title'] = 'Покупка облигаций'
-				operations[-1]['table'] = 'buy_bond'
+				operations[-1]['table'] = 'buybond'
 			
-			sql = 'SELECT * FROM sale_bond WHERE uid=%s AND date < %s AND date > %s'
+			sql = 'SELECT * FROM salebond WHERE uid=%s AND date < %s AND date > %s'
 			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
 			res = cursor.fetchall()
 			for x in res:
 				operations.append(x)
 				operations[-1]['title'] = 'Продажа облигаций'
-				operations[-1]['table'] = 'sale_bond'
+				operations[-1]['table'] = 'salebond'
 			
 			sql = 'SELECT * FROM taxes WHERE uid=%s AND date < %s AND date > %s'
 			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
@@ -460,13 +487,13 @@ def get_history(uid, start_timestamp, end_timestamp):
 				operations[-1]['title'] = 'Оплата комиссии'
 				operations[-1]['table'] = 'comissions'
 			
-			sql = 'SELECT * FROM coupon_income WHERE uid=%s AND date < %s AND date > %s'
+			sql = 'SELECT * FROM couponincome WHERE uid=%s AND date < %s AND date > %s'
 			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
 			res = cursor.fetchall()
 			for x in res:
 				operations.append(x)
 				operations[-1]['title'] = 'Получение купонного дохода'
-				operations[-1]['table'] = 'coupon_income'
+				operations[-1]['table'] = 'couponincome'
 			
 			sql = 'SELECT * FROM dividends WHERE uid=%s AND date < %s AND date > %s'
 			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
