@@ -85,6 +85,7 @@ class DataBase:
 					`ticker` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`count` int(11) COLLATE utf8_general_ci NOT NULL,
 					`nkd` int(11) NOT NULL,
+					`broker` varchar(255) COLLATE utf8_general_ci,
 					`price` int(11) NOT NULL,
 					`api_price` int(11),
 					PRIMARY KEY (`id`)
@@ -97,7 +98,6 @@ class DataBase:
 					`id` int(11) NOT NULL AUTO_INCREMENT,
 					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
-					`name` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`ticker` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`count` int(11) COLLATE utf8_general_ci NOT NULL,
 					`broker` varchar(255) COLLATE utf8_general_ci,
@@ -243,7 +243,7 @@ class DataBase:
 			connection.close()
 
 	@staticmethod
-	def add_buybond(uid, date, ticker, count, nkd, price, api_price=0):
+	def add_buybond(uid, date, ticker, count, nkd, price, broker, api_price=0):
 		"""
 		Покупка облигаций
 		"""
@@ -256,14 +256,14 @@ class DataBase:
 			cursorclass=pymysql.cursors.DictCursor)
 		try:
 			with connection.cursor() as cursor:
-				sql = 'INSERT INTO `buybond` (`uid`, `date`, `ticker`, `count`, `nkd`, `price`, `api_price`) VALUES (%s, %s, %s, %s, %s, %s, %s)'
-				cursor.execute(sql, (uid, date, ticker, count, nkd, price, api_price))
+				sql = 'INSERT INTO `buybond` (`uid`, `date`, `ticker`, `count`, `nkd`, `price`, `broker`, `api_price`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
+				cursor.execute(sql, (uid, date, ticker, count, nkd, price, broker, api_price))
 			connection.commit()
 		finally:
 			connection.close()
 
 	@staticmethod
-	def add_salebond(uid, date, name, ticker, count, broker, nkd, price):
+	def add_salebond(uid, date, ticker, count, broker, nkd, price):
 		"""
 		Продажа облигации
 		"""
@@ -276,8 +276,8 @@ class DataBase:
 			cursorclass=pymysql.cursors.DictCursor)
 		try:
 			with connection.cursor() as cursor:
-				sql = 'INSERT INTO `salebond` (`uid`, `date`, `name`, `ticker`, `count`, `broker`, `nkd`, `price`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
-				cursor.execute(sql, (uid, date, name, ticker, count, broker, nkd, price))
+				sql = 'INSERT INTO `salebond` (`uid`, `date`, `ticker`, `count`, `broker`, `nkd`, `price`) VALUES (%s, %s, %s, %s, %s, %s, %s)'
+				cursor.execute(sql, (uid, date, ticker, count, broker, nkd, price))
 			connection.commit()
 		finally:
 			connection.close()
