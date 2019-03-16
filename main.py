@@ -99,7 +99,35 @@ def text_handler(message):
 		elif arr[1] == 'dividends':
 			table_name = 'Получение дивидендов'
 
-		text = 'Вы хотите удалить операцию "{!s}"?'.format(table_name)
+		text = ''
+		if arr[1] == 'accountamount':
+			text += 'Сумма: {!s}\nБрокер: {!s}'.format(operation['amount'], operation['broker'])
+		if arr[1] == 'accountminusamount':
+			text += 'Сумма: {!s}\nБрокер: {!s}'.format(operation['amount'], operation['broker'])
+		if arr[1] == 'buystock':
+			text += 'Тикер: {!s}\nКол-во: {!s}\nЦена: {!s}\nБрокер: {!s}'.format(
+				operation['ticker'], operation['count'], operation['price'], operation['broker'])
+		if arr[1] == 'salestock':
+			text += 'Тикер: {!s}\nКол-во: {!s}\nЦена: {!s}\nБрокер: {!s}'.format(
+				operation['ticker'], operation['count'], operation['price'], operation['broker'])
+		if arr[1] == 'buybond':
+			text += 'Тикер: {!s}\nКол-во: {!s}\nНКД: {!s}\nЦена: {!s}\nБрокер: {!s}'.format(
+				operation['ticker'], operation['count'], operation['nkd'], operation['price'], operation['broker'])
+		if arr[1] == 'salebond':
+			text += 'Тикер: {!s}\nКол-во: {!s}\nНКД: {!s}\nЦена: {!s}\nБрокер: {!s}'.format(
+				operation['ticker'], operation['count'], operation['nkd'], operation['price'], operation['broker'])
+		if arr[1] == 'taxes':
+			text += 'Сумма: {!s}\nБрокер: {!s}'.format(operation['amount'], operation['broker'])
+		if arr[1] == 'comissions':
+			text += 'Сумма: {!s}\nБрокер: {!s}'.format(operation['amount'], operation['broker'])
+		if arr[1] == 'couponincome':
+			text += 'Тикер: {!s}\nСумма: {!s}\nБрокер: {!s}'.format(
+				operation['bond'], operation['amount'], operation['broker'])
+		if arr[1] == 'dividends':
+			text += 'Тикер: {!s}\nСумма: {!s}\nБрокер: {!s}'.format(
+				operation['dividend'], operation['amount'], operation['broker'])
+
+		text = 'Вы хотите удалить операцию "{!s}"?\n{!s}'.format(table_name, text)
 		keyboard = types.InlineKeyboardMarkup()
 		cb = 'delop-{!s}-{!s}'.format(arr[1], arr[2])
 		keyboard.add(types.InlineKeyboardButton(text='Удалить', callback_data=cb))
@@ -443,7 +471,7 @@ def callback_inline(call):
 
 		text = ''
 		for x in operations:
-			_date = datetime.datetime.utcfromtimestamp(int(x['date'])).strftime('%Y.%m.%d  %H:%M:%S')
+			_date = datetime.datetime.utcfromtimestamp(int(x['date'])).strftime('%Y.%m.%d     %H:%M:%S')
 			text += 'Операция: {!s}\nДата: {!s}\n'.format(x['title'], _date)
 
 			if x['table'] == 'accountamount':
