@@ -506,3 +506,91 @@ def get_history(uid, start_timestamp, end_timestamp):
 		return sorted(operations, key=itemgetter('date'), reverse=False)
 	finally:
 		connection.close()
+
+
+class Moex:
+	"""
+	API биржи Moex
+	"""
+
+	@staticmethod
+	def get_stock_price(tiker):
+		"""
+		Получить стоимость акции
+		"""
+		try:
+			current_date = datetime.datetime.now().strftime('%Y-%m-%d')
+			last_day = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+			res = requests.get('http://iss.moex.com/iss/securities.json?q={!s}'.format(tiker))
+			board = res.json()['securities']['data'][0][-1]
+			url = 'http://iss.moex.com/iss/history/engines/stock/markets/shares/boards/{!s}/securities/{!s}.json?from={!s}&till={!s}'.format(
+				board, tiker, last_day, current_date
+			)
+			res = requests.get(url)
+			price = res.json()['history']['data'][0][9]
+			return int(price)
+		except Exception as e:
+			print(e)
+			return None
+
+	@staticmethod
+	def get_bond_price(code):
+		"""
+		Получить стоимость облигации
+		"""
+		try:
+			current_date = datetime.datetime.now().strftime('%Y-%m-%d')
+			last_day = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+			res = requests.get('http://iss.moex.com/iss/securities.json?q={!s}'.format(code))
+			board = res.json()['securities']['data'][0][-1]
+			url = 'http://iss.moex.com/iss/history/engines/stock/markets/bonds/boards/{!s}/securities/{!s}.json?from={!s}&till={!s}'.format(
+				board, code, last_day, current_date
+			)
+			res = requests.get(url)
+			price = res.json()['history']['data'][0][9]
+			return int(price)
+		except Exception as e:
+			print(e)
+			return None
+
+
+def update_moex():
+	"""
+	Обновить стоимости акций и облигаций
+	"""
+	connection = pymysql.connect(
+		host=config.db_host,
+		user=config.db_user,
+		password=config.db_password,
+		db=config.db_database,
+		charset=config.db_charset,
+		cursorclass=pymysql.cursors.DictCursor)
+	try:
+		with connection.cursor() as cursor:
+			# Обработать акции
+			sql = 'SELECT * FROM buystock'
+			cursor.execute(sql)
+			res = cursor.fetchall()
+			print(res)
+			for stock in res:
+				new_api_price = Moex.get_stock_price(stock['ticker'])
+				sql = 'UPDATE buystock SET api_price=%s WHERE id=%s'
+				cursor.execute(sql, (new_api_price, stock['id']))
+			# Обработать облигации
+			sql = 'SELECT * FROM buybond'
+			cursor.execute(sql)
+			res = cursor.fetchall()
+			print(res)
+			for bond in res:
+				new_api_price = Moex.get_bond_price(bond['ticker'])
+				sql = 'UPDATE buybond SET api_price=%s WHERE id=%s'
+				cursor.execute(sql, (new_api_price, bond['id']))
+		connection.commit()
+	finally:
+		connection.close()
+	return None
+
+
+# print(Moex.get_stock_price('MGNT'))
+# print(Moex.get_bond_price('RU000A100048'))
+# update_moex()

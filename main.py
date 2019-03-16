@@ -2,8 +2,10 @@
 
 import time
 import datetime
+import threading
 import dateutil.relativedelta
 
+import schedule
 import telebot
 from telebot import types, apihelper
 
@@ -165,8 +167,11 @@ def text_handler(message):
 	# Обработать покупку акции
 	if uid in READY_TO_buystock:
 		if 'ticker' not in READY_TO_buystock[uid]:
-			# TODO: сделать выборку цены акции
-			READY_TO_buystock[uid]['api_price'] = 0
+			api_price = util.Moex.get_stock_price(message.text)
+			if not api_price:
+				text = 'Такого тикера не существует'
+				return bot.send_message(cid, text)
+			READY_TO_buystock[uid]['api_price'] = api_price
 			READY_TO_buystock[uid]['ticker'] = message.text
 			text = 'Напишите количество акций для покупки'
 			return bot.send_message(cid, text)
@@ -229,8 +234,11 @@ def text_handler(message):
 	# Обработать покупку облигации
 	if uid in READY_TO_buybond:
 		if 'ticker' not in READY_TO_buybond[uid]:
-			# TODO: сделать выборку цены акции
-			READY_TO_buybond[uid]['api_price'] = 0
+			api_price = util.Moex.get_bond_price(message.text)
+			if not api_price:
+				text = 'Такого тикера не существует'
+				return bot.send_message(cid, text)
+			READY_TO_buybond[uid]['api_price'] = api_price
 			READY_TO_buybond[uid]['ticker'] = message.text
 			text = 'Введите количество облигаций для покупки'
 			return bot.send_message(cid, text)
@@ -635,7 +643,8 @@ def callback_inline(call):
 				READY_TO_buybond[uid]['count'],
 				READY_TO_buybond[uid]['nkd'],
 				READY_TO_buybond[uid]['price'],
-				READY_TO_buybond[uid]['broker'])
+				READY_TO_buybond[uid]['broker'],
+				READY_TO_buybond[uid]['api_price'])
 			print(READY_TO_buybond[uid])
 			del READY_TO_buybond[uid]
 			text = 'Вы успешно купили облигации'
@@ -747,9 +756,20 @@ def callback_inline(call):
 			return bot.send_message(cid, text, reply_markup=keyboard)
 
 
+def monitor():
+	"""
+	Обновлять данные с биржи раз в сутки
+	"""
+	schedule.every().day.at('00:00').do(util.update_moex)
+	while True:
+		schedule.run_pending()
+		time.sleep(1)
+
+
 def main():
 	util.DataBase.deploy_database()
-
+	th1 = threading.Thread(target=monitor)
+	th1.start()
 	if config.DEBUG:
 		apihelper.proxy = {'https': 'socks5h://13.95.197.15:1080'}
 		bot.polling()
