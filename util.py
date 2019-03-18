@@ -530,7 +530,7 @@ class Moex:
 		"""
 		try:
 			current_date = datetime.datetime.now().strftime('%Y-%m-%d')
-			last_day = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+			last_day = (datetime.datetime.now() - datetime.timedelta(days=30)).strftime('%Y-%m-%d')
 			res = requests.get('http://iss.moex.com/iss/securities.json?q={!s}'.format(tiker))
 			board = res.json()['securities']['data'][0][-1]
 			url = 'http://iss.moex.com/iss/history/engines/stock/markets/shares/boards/{!s}/securities/{!s}.json?from={!s}&till={!s}'.format(
@@ -538,7 +538,7 @@ class Moex:
 			)
 			print(url)
 			res = requests.get(url)
-			price = res.json()['history']['data'][0][9]
+			price = res.json()['history']['data'][-1][9]
 			return int(price)
 		except Exception as e:
 			print(e)
@@ -551,7 +551,7 @@ class Moex:
 		"""
 		try:
 			current_date = datetime.datetime.now().strftime('%Y-%m-%d')
-			last_day = (datetime.datetime.now() - datetime.timedelta(days=1)).strftime('%Y-%m-%d')
+			last_day = (datetime.datetime.now() - datetime.timedelta(days=30)).strftime('%Y-%m-%d')
 			res = requests.get('http://iss.moex.com/iss/securities.json?q={!s}'.format(code))
 			board = res.json()['securities']['data'][0][-1]
 			url = 'http://iss.moex.com/iss/history/engines/stock/markets/bonds/boards/{!s}/securities/{!s}.json?from={!s}&till={!s}'.format(
@@ -559,7 +559,7 @@ class Moex:
 			)
 			res = requests.get(url)
 			print(url)
-			price = res.json()['history']['data'][0][9]
+			price = res.json()['history']['data'][-1][9]
 			return int(price)
 		except Exception as e:
 			print(e)
@@ -603,6 +603,6 @@ def update_moex():
 	return None
 
 
-# print(Moex.get_stock_price('MGNT'))
+# print(Moex.get_stock_price('CHMF'))
 # print(Moex.get_bond_price('RU000A100048'))
 # update_moex()
