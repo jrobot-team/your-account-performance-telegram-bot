@@ -15,30 +15,39 @@ main_markup = [
 ]
 
 operations_markup = [
-	[{'text': 'Пополнить счет', 'callback': 'add_amount'}],
-	[{'text': 'Вывести средства', 'callback': 'minus_amount'}],
-	[{'text': 'Купить акции', 'callback': 'add_aczii'}],
-	[{'text': 'Продать акции', 'callback': 'delete_aczii'}],
-	[{'text': 'Купить облигации', 'callback': 'add_oblig'}],
-	[{'text': 'Продать облигации', 'callback': 'delete_oblig'}],
-	[{'text': 'Заплатить налог', 'callback': 'pay_nalog'}],
-	[{'text': 'Заплатить комиссию', 'callback': 'pay_comission'}],
-	[{'text': 'Получить купонный доход', 'callback': 'get_cupon'}],
-	[{'text': 'Получить дивиденды', 'callback': 'get_dividends'}],
+	[{'text': 'Пополнение счета', 'callback': 'add_amount'}],
+	[{'text': 'Вывод средств', 'callback': 'minus_amount'}],
+	[{'text': 'Покупка акций', 'callback': 'add_aczii'}],
+	[{'text': 'Продажа акций', 'callback': 'delete_aczii'}],
+	[{'text': 'Покупка облигаций', 'callback': 'add_oblig'}],
+	[{'text': 'Продажа облигаций', 'callback': 'delete_oblig'}],
+	[{'text': 'Удержание налога', 'callback': 'pay_nalog'}],
+	[{'text': 'Удержание комиссии', 'callback': 'pay_comission'}],
+	[{'text': 'Зачисление купонного дохода', 'callback': 'get_cupon'}],
+	[{'text': 'Зачисление дивидендов', 'callback': 'get_dividends'}],
 ]
 
+'''
 brokers = {
 	'0': 'БКС',
 	'1': 'Тинькофф',
 	'2': 'Сбербанк',
 }
+'''
 
 schet_markup = [
-	[{'text': 'Посмотреть историю операций', 'callback': 'history'}],
+	[{'text': 'История операций с ценными бумагами', 'callback': 'history_papers'}],
+	[{'text': 'История операций с деньгами', 'callback': 'history_money'}],
 ]
 
-history_markup = [
-	[{'text': 'За предыдущий месяц', 'callback': 'history_lastmonth'}],
-	[{'text': 'За три месяца', 'callback': 'history_threemonths'}],
-	[{'text': 'Все', 'callback': 'history_allmonths'}],
+papers_history_markup = [
+	[{'text': 'За предыдущий месяц', 'callback': 'history_papers_lastmonth'}],
+	[{'text': 'За три месяца', 'callback': 'history_papers_threemonths'}],
+	[{'text': 'Все', 'callback': 'history_papers_allmonths'}],
+]
+
+money_history_markup = [
+	[{'text': 'За предыдущий месяц', 'callback': 'history_money_lastmonth'}],
+	[{'text': 'За три месяца', 'callback': 'history_money_threemonths'}],
+	[{'text': 'Все', 'callback': 'history_money_allmonths'}],
 ]

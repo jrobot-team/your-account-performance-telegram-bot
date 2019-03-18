@@ -28,6 +28,7 @@ class DataBase:
 					`id` int(11) NOT NULL AUTO_INCREMENT,
 					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`input_date` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`amount` int(11) COLLATE utf8_general_ci NOT NULL,
 					`broker` varchar(255) COLLATE utf8_general_ci,
 					PRIMARY KEY (`id`)
@@ -40,6 +41,7 @@ class DataBase:
 					`id` int(11) NOT NULL AUTO_INCREMENT,
 					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`input_date` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`amount` int(11) COLLATE utf8_general_ci NOT NULL,
 					`broker` varchar(255) COLLATE utf8_general_ci,
 					PRIMARY KEY (`id`)
@@ -52,6 +54,7 @@ class DataBase:
 					`id` int(11) NOT NULL AUTO_INCREMENT,
 					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`input_date` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`ticker` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`count` int(11) COLLATE utf8_general_ci NOT NULL,
 					`broker` varchar(255) COLLATE utf8_general_ci NOT NULL,
@@ -67,6 +70,7 @@ class DataBase:
 					`id` int(11) NOT NULL AUTO_INCREMENT,
 					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`input_date` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`ticker` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`count` int(11) COLLATE utf8_general_ci NOT NULL,
 					`broker` varchar(255) COLLATE utf8_general_ci NOT NULL,
@@ -81,6 +85,7 @@ class DataBase:
 					`id` int(11) NOT NULL AUTO_INCREMENT,
 					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`input_date` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`ticker` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`count` int(11) COLLATE utf8_general_ci NOT NULL,
 					`nkd` int(11) NOT NULL,
@@ -97,6 +102,7 @@ class DataBase:
 					`id` int(11) NOT NULL AUTO_INCREMENT,
 					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`input_date` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`ticker` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`count` int(11) COLLATE utf8_general_ci NOT NULL,
 					`broker` varchar(255) COLLATE utf8_general_ci,
@@ -112,6 +118,7 @@ class DataBase:
 					`id` int(11) NOT NULL AUTO_INCREMENT,
 					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`input_date` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`amount` int(11) COLLATE utf8_general_ci NOT NULL,
 					`broker` varchar(255) COLLATE utf8_general_ci,
 					PRIMARY KEY (`id`)
@@ -124,6 +131,7 @@ class DataBase:
 					`id` int(11) NOT NULL AUTO_INCREMENT,
 					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`input_date` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`amount` int(11) COLLATE utf8_general_ci NOT NULL,
 					`broker` varchar(255) COLLATE utf8_general_ci,
 					PRIMARY KEY (`id`)
@@ -136,6 +144,7 @@ class DataBase:
 					`id` int(11) NOT NULL AUTO_INCREMENT,
 					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`input_date` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`bond` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`amount` int(11) COLLATE utf8_general_ci NOT NULL,
 					`broker` varchar(255) COLLATE utf8_general_ci,
@@ -149,6 +158,7 @@ class DataBase:
 					`id` int(11) NOT NULL AUTO_INCREMENT,
 					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`input_date` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`dividend` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`amount` int(11) COLLATE utf8_general_ci NOT NULL,
 					`broker` varchar(255) COLLATE utf8_general_ci,
@@ -162,7 +172,7 @@ class DataBase:
 			connection.close()
 
 	@staticmethod
-	def add_new_amount(uid, date, amount, broker):
+	def add_new_amount(uid, date, input_date, amount, broker):
 		"""
 		Пополнить счет
 		"""
@@ -175,14 +185,14 @@ class DataBase:
 			cursorclass=pymysql.cursors.DictCursor)
 		try:
 			with connection.cursor() as cursor:
-				sql = 'INSERT INTO `accountamount` (`uid`, `date`, `amount`, `broker`) VALUES (%s, %s, %s, %s)'
-				cursor.execute(sql, (uid, date, amount, broker))
+				sql = 'INSERT INTO `accountamount` (`uid`, `date`, `input_date`, `amount`, `broker`) VALUES (%s, %s, %s, %s, %s)'
+				cursor.execute(sql, (uid, date, input_date, amount, broker))
 			connection.commit()
 		finally:
 			connection.close()
 
 	@staticmethod
-	def add_minus_amount(uid, date, amount, broker):
+	def add_minus_amount(uid, date, input_date, amount, broker):
 		"""
 		Вывод средств
 		"""
@@ -195,14 +205,14 @@ class DataBase:
 			cursorclass=pymysql.cursors.DictCursor)
 		try:
 			with connection.cursor() as cursor:
-				sql = 'INSERT INTO `accountminusamount` (`uid`, `date`, `amount`, `broker`) VALUES (%s, %s, %s, %s)'
-				cursor.execute(sql, (uid, date, amount, broker))
+				sql = 'INSERT INTO `accountminusamount` (`uid`, `date`, `input_date`, `amount`, `broker`) VALUES (%s, %s, %s, %s, %s)'
+				cursor.execute(sql, (uid, date, input_date, amount, broker))
 			connection.commit()
 		finally:
 			connection.close()
 	
 	@staticmethod
-	def add_buystock(uid, date, ticker, count, broker, price, api_price=0):
+	def add_buystock(uid, date, input_date, ticker, count, broker, price, api_price=0):
 		"""
 		Покупка акций
 		"""
@@ -215,14 +225,14 @@ class DataBase:
 			cursorclass=pymysql.cursors.DictCursor)
 		try:
 			with connection.cursor() as cursor:
-				sql = 'INSERT INTO `buystock` (`uid`, `date`, `ticker`, `count`, `broker`, `price`, `api_price`) VALUES (%s, %s, %s, %s, %s, %s, %s)'
-				cursor.execute(sql, (uid, date, ticker, count, broker, price, api_price))
+				sql = 'INSERT INTO `buystock` (`uid`, `date`, `input_date`, `ticker`, `count`, `broker`, `price`, `api_price`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
+				cursor.execute(sql, (uid, date, input_date, ticker, count, broker, price, api_price))
 			connection.commit()
 		finally:
 			connection.close()
 
 	@staticmethod
-	def add_salestock(uid, date, ticker, count, broker, price):
+	def add_salestock(uid, date, input_date, ticker, count, broker, price):
 		"""
 		Продажа акций
 		"""
@@ -235,14 +245,14 @@ class DataBase:
 			cursorclass=pymysql.cursors.DictCursor)
 		try:
 			with connection.cursor() as cursor:
-				sql = 'INSERT INTO `salestock` (`uid`, `date`, `ticker`, `count`, `broker`, `price`) VALUES (%s, %s, %s, %s, %s, %s)'
-				cursor.execute(sql, (uid, date, ticker, count, broker, price))
+				sql = 'INSERT INTO `salestock` (`uid`, `date`, `input_date`, `ticker`, `count`, `broker`, `price`) VALUES (%s, %s, %s, %s, %s, %s, %s)'
+				cursor.execute(sql, (uid, date, input_date, ticker, count, broker, price))
 			connection.commit()
 		finally:
 			connection.close()
 
 	@staticmethod
-	def add_buybond(uid, date, ticker, count, nkd, price, broker, api_price=0):
+	def add_buybond(uid, date, input_date, ticker, count, nkd, price, broker, api_price=0):
 		"""
 		Покупка облигаций
 		"""
@@ -255,14 +265,14 @@ class DataBase:
 			cursorclass=pymysql.cursors.DictCursor)
 		try:
 			with connection.cursor() as cursor:
-				sql = 'INSERT INTO `buybond` (`uid`, `date`, `ticker`, `count`, `nkd`, `price`, `broker`, `api_price`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
-				cursor.execute(sql, (uid, date, ticker, count, nkd, price, broker, api_price))
+				sql = 'INSERT INTO `buybond` (`uid`, `date`, `input_date` ,`ticker`, `count`, `nkd`, `price`, `broker`, `api_price`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)'
+				cursor.execute(sql, (uid, date, input_date, ticker, count, nkd, price, broker, api_price))
 			connection.commit()
 		finally:
 			connection.close()
 
 	@staticmethod
-	def add_salebond(uid, date, ticker, count, broker, nkd, price):
+	def add_salebond(uid, date, input_date, ticker, count, broker, nkd, price):
 		"""
 		Продажа облигации
 		"""
@@ -275,14 +285,14 @@ class DataBase:
 			cursorclass=pymysql.cursors.DictCursor)
 		try:
 			with connection.cursor() as cursor:
-				sql = 'INSERT INTO `salebond` (`uid`, `date`, `ticker`, `count`, `broker`, `nkd`, `price`) VALUES (%s, %s, %s, %s, %s, %s, %s)'
-				cursor.execute(sql, (uid, date, ticker, count, broker, nkd, price))
+				sql = 'INSERT INTO `salebond` (`uid`, `date`, `input_date`, `ticker`, `count`, `broker`, `nkd`, `price`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s)'
+				cursor.execute(sql, (uid, date, input_date, ticker, count, broker, nkd, price))
 			connection.commit()
 		finally:
 			connection.close()
 
 	@staticmethod
-	def add_new_tax(uid, date, amount, broker):
+	def add_new_tax(uid, date, input_date, amount, broker):
 		"""
 		Налог
 		"""
@@ -295,14 +305,14 @@ class DataBase:
 			cursorclass=pymysql.cursors.DictCursor)
 		try:
 			with connection.cursor() as cursor:
-				sql = 'INSERT INTO `taxes` (`uid`, `date`, `amount`, `broker`) VALUES (%s, %s, %s, %s)'
-				cursor.execute(sql, (uid, date, amount, broker))
+				sql = 'INSERT INTO `taxes` (`uid`, `date`, `input_date`, `amount`, `broker`) VALUES (%s, %s, %s, %s, %s)'
+				cursor.execute(sql, (uid, date, input_date, amount, broker))
 			connection.commit()
 		finally:
 			connection.close()
 	
 	@staticmethod
-	def add_new_commission(uid, date, amount, broker):
+	def add_new_commission(uid, date, input_date, amount, broker):
 		"""
 		Комиссия
 		"""
@@ -315,14 +325,14 @@ class DataBase:
 			cursorclass=pymysql.cursors.DictCursor)
 		try:
 			with connection.cursor() as cursor:
-				sql = 'INSERT INTO `comissions` (`uid`, `date`, `amount`, `broker`) VALUES (%s, %s, %s, %s)'
-				cursor.execute(sql, (uid, date, amount, broker))
+				sql = 'INSERT INTO `comissions` (`uid`, `date`, `input_date`, `amount`, `broker`) VALUES (%s, %s, %s, %s, %s)'
+				cursor.execute(sql, (uid, date, input_date, amount, broker))
 			connection.commit()
 		finally:
 			connection.close()
 
 	@staticmethod
-	def add_new_couponincome(uid, date, bond, amount, broker):
+	def add_new_couponincome(uid, date, input_date, bond, amount, broker):
 		"""
 		Купонный доход
 		"""
@@ -335,14 +345,14 @@ class DataBase:
 			cursorclass=pymysql.cursors.DictCursor)
 		try:
 			with connection.cursor() as cursor:
-				sql = 'INSERT INTO `couponincome` (`uid`, `date`, `bond`, `amount`, `broker`) VALUES (%s, %s, %s, %s, %s)'
-				cursor.execute(sql, (uid, date, bond, amount, broker))
+				sql = 'INSERT INTO `couponincome` (`uid`, `date`, `input_date`, `bond`, `amount`, `broker`) VALUES (%s, %s, %s, %s, %s, %s)'
+				cursor.execute(sql, (uid, date, input_date, bond, amount, broker))
 			connection.commit()
 		finally:
 			connection.close()
 	
 	@staticmethod
-	def add_new_dividend(uid, date, dividend, amount, broker):
+	def add_new_dividend(uid, date, input_date, dividend, amount, broker):
 		"""
 		Получение дивидендов
 		"""
@@ -355,8 +365,8 @@ class DataBase:
 			cursorclass=pymysql.cursors.DictCursor)
 		try:
 			with connection.cursor() as cursor:
-				sql = 'INSERT INTO `dividends` (`uid`, `date`, `dividend`, `amount`, `broker`) VALUES (%s, %s, %s, %s, %s)'
-				cursor.execute(sql, (uid, date, dividend, amount, broker))
+				sql = 'INSERT INTO `dividends` (`uid`, `date`, `input_date`, `dividend`, `amount`, `broker`) VALUES (%s, %s, %s, %s, %s, %s)'
+				cursor.execute(sql, (uid, date, input_date, dividend, amount, broker))
 			connection.commit()
 		finally:
 			connection.close()
@@ -526,6 +536,7 @@ class Moex:
 			url = 'http://iss.moex.com/iss/history/engines/stock/markets/shares/boards/{!s}/securities/{!s}.json?from={!s}&till={!s}'.format(
 				board, tiker, last_day, current_date
 			)
+			print(url)
 			res = requests.get(url)
 			price = res.json()['history']['data'][0][9]
 			return int(price)
@@ -547,6 +558,7 @@ class Moex:
 				board, code, last_day, current_date
 			)
 			res = requests.get(url)
+			print(url)
 			price = res.json()['history']['data'][0][9]
 			return int(price)
 		except Exception as e:
