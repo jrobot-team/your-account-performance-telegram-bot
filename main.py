@@ -700,10 +700,9 @@ def callback_inline(call):
 		util.DataBase.delete_operation(arr[1], uid, arr[2])		
 		text = 'Операция успешно удалена'
 		bot.edit_message_text(text, cid, call.message.message_id)
-		# TODO
-		text = 'Вы можете посмотреть операции за другой промежуток времени'
+		text = 'Вы можете посмотреть операции'
 		keyboard = types.InlineKeyboardMarkup()
-		for x in config.history_markup:
+		for x in config.schet_markup:
 			keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
 		return bot.send_message(cid, text, reply_markup=keyboard)
 	
