@@ -11,7 +11,7 @@ db_charset = 'utf8'
 
 main_markup = [
 	['Добавить операцию'],
-	['Счет и портфель'],
+	['Портфель'],
 ]
 
 operations_markup = [

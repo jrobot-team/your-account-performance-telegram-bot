@@ -1,3 +1,4 @@
+import time
 import datetime
 from operator import itemgetter
 
@@ -29,7 +30,7 @@ class DataBase:
 					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`input_date` varchar(255) COLLATE utf8_general_ci NOT NULL,
-					`amount` int(11) COLLATE utf8_general_ci NOT NULL,
+					`amount` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`broker` varchar(255) COLLATE utf8_general_ci,
 					PRIMARY KEY (`id`)
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
@@ -42,7 +43,7 @@ class DataBase:
 					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`input_date` varchar(255) COLLATE utf8_general_ci NOT NULL,
-					`amount` int(11) COLLATE utf8_general_ci NOT NULL,
+					`amount` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`broker` varchar(255) COLLATE utf8_general_ci,
 					PRIMARY KEY (`id`)
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
@@ -58,7 +59,7 @@ class DataBase:
 					`ticker` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`count` int(11) COLLATE utf8_general_ci NOT NULL,
 					`broker` varchar(255) COLLATE utf8_general_ci NOT NULL,
-					`price` int(11) COLLATE utf8_general_ci NOT NULL,
+					`price` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`api_price` int(11),
 					PRIMARY KEY (`id`)
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
@@ -74,7 +75,7 @@ class DataBase:
 					`ticker` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`count` int(11) COLLATE utf8_general_ci NOT NULL,
 					`broker` varchar(255) COLLATE utf8_general_ci NOT NULL,
-					`price` int(11),
+					`price` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					PRIMARY KEY (`id`)
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
 				AUTO_INCREMENT=1;
@@ -88,9 +89,9 @@ class DataBase:
 					`input_date` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`ticker` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`count` int(11) COLLATE utf8_general_ci NOT NULL,
-					`nkd` int(11) NOT NULL,
+					`nkd` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`broker` varchar(255) COLLATE utf8_general_ci,
-					`price` int(11) NOT NULL,
+					`price` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`api_price` int(11),
 					PRIMARY KEY (`id`)
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
@@ -106,8 +107,8 @@ class DataBase:
 					`ticker` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`count` int(11) COLLATE utf8_general_ci NOT NULL,
 					`broker` varchar(255) COLLATE utf8_general_ci,
-					`nkd` int(11) NOT NULL,
-					`price` int(11) NOT NULL,
+					`nkd` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`price` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					PRIMARY KEY (`id`)
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
 				AUTO_INCREMENT=1;
@@ -119,7 +120,7 @@ class DataBase:
 					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`input_date` varchar(255) COLLATE utf8_general_ci NOT NULL,
-					`amount` int(11) COLLATE utf8_general_ci NOT NULL,
+					`amount` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`broker` varchar(255) COLLATE utf8_general_ci,
 					PRIMARY KEY (`id`)
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
@@ -132,7 +133,7 @@ class DataBase:
 					`uid` int(11) COLLATE utf8_general_ci NOT NULL,
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`input_date` varchar(255) COLLATE utf8_general_ci NOT NULL,
-					`amount` int(11) COLLATE utf8_general_ci NOT NULL,
+					`amount` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`broker` varchar(255) COLLATE utf8_general_ci,
 					PRIMARY KEY (`id`)
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
@@ -146,7 +147,7 @@ class DataBase:
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`input_date` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`bond` varchar(255) COLLATE utf8_general_ci NOT NULL,
-					`amount` int(11) COLLATE utf8_general_ci NOT NULL,
+					`amount` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`broker` varchar(255) COLLATE utf8_general_ci,
 					PRIMARY KEY (`id`)
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
@@ -160,7 +161,7 @@ class DataBase:
 					`date` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`input_date` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`dividend` varchar(255) COLLATE utf8_general_ci NOT NULL,
-					`amount` int(11) COLLATE utf8_general_ci NOT NULL,
+					`amount` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`broker` varchar(255) COLLATE utf8_general_ci,
 					PRIMARY KEY (`id`)
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
@@ -354,7 +355,7 @@ class DataBase:
 	@staticmethod
 	def add_new_dividend(uid, date, input_date, dividend, amount, broker):
 		"""
-		Получение дивидендов
+		Зачисление дивидендов
 		"""
 		connection = pymysql.connect(
 			host=config.db_host,
@@ -432,7 +433,7 @@ def get_history(uid, start_timestamp, end_timestamp):
 		operations = []
 		with connection.cursor() as cursor:
 
-			sql = 'SELECT * FROM accountamount WHERE uid=%s AND date < %s AND date > %s'
+			sql = 'SELECT * FROM accountamount WHERE uid=%s AND input_date < %s AND input_date > %s'
 			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
 			res = cursor.fetchall()
 			for x in res:
@@ -440,7 +441,7 @@ def get_history(uid, start_timestamp, end_timestamp):
 				operations[-1]['title'] = 'Пополнение счета'
 				operations[-1]['table'] = 'accountamount'
 			
-			sql = 'SELECT * FROM accountminusamount WHERE uid=%s AND date < %s AND date > %s'
+			sql = 'SELECT * FROM accountminusamount WHERE uid=%s AND input_date < %s AND input_date > %s'
 			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
 			res = cursor.fetchall()
 			for x in res:
@@ -448,7 +449,7 @@ def get_history(uid, start_timestamp, end_timestamp):
 				operations[-1]['title'] = 'Вывод средств'
 				operations[-1]['table'] = 'accountminusamount'
 			
-			sql = 'SELECT * FROM buystock WHERE uid=%s AND date < %s AND date > %s'
+			sql = 'SELECT * FROM buystock WHERE uid=%s AND input_date < %s AND input_date > %s'
 			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
 			res = cursor.fetchall()
 			for x in res:
@@ -456,7 +457,7 @@ def get_history(uid, start_timestamp, end_timestamp):
 				operations[-1]['title'] = 'Покупка акций'
 				operations[-1]['table'] = 'buystock'
 			
-			sql = 'SELECT * FROM salestock WHERE uid=%s AND date < %s AND date > %s'
+			sql = 'SELECT * FROM salestock WHERE uid=%s AND input_date < %s AND input_date > %s'
 			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
 			res = cursor.fetchall()
 			for x in res:
@@ -464,7 +465,7 @@ def get_history(uid, start_timestamp, end_timestamp):
 				operations[-1]['title'] = 'Продажа акций'
 				operations[-1]['table'] = 'salestock'
 			
-			sql = 'SELECT * FROM buybond WHERE uid=%s AND date < %s AND date > %s'
+			sql = 'SELECT * FROM buybond WHERE uid=%s AND input_date < %s AND input_date > %s'
 			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
 			res = cursor.fetchall()
 			for x in res:
@@ -472,7 +473,7 @@ def get_history(uid, start_timestamp, end_timestamp):
 				operations[-1]['title'] = 'Покупка облигаций'
 				operations[-1]['table'] = 'buybond'
 			
-			sql = 'SELECT * FROM salebond WHERE uid=%s AND date < %s AND date > %s'
+			sql = 'SELECT * FROM salebond WHERE uid=%s AND input_date < %s AND input_date > %s'
 			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
 			res = cursor.fetchall()
 			for x in res:
@@ -480,40 +481,40 @@ def get_history(uid, start_timestamp, end_timestamp):
 				operations[-1]['title'] = 'Продажа облигаций'
 				operations[-1]['table'] = 'salebond'
 			
-			sql = 'SELECT * FROM taxes WHERE uid=%s AND date < %s AND date > %s'
+			sql = 'SELECT * FROM taxes WHERE uid=%s AND input_date < %s AND input_date > %s'
 			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
 			res = cursor.fetchall()
 			for x in res:
 				operations.append(x)
-				operations[-1]['title'] = 'Оплата налога'
+				operations[-1]['title'] = 'Удержание налога'
 				operations[-1]['table'] = 'taxes'
 			
-			sql = 'SELECT * FROM comissions WHERE uid=%s AND date < %s AND date > %s'
+			sql = 'SELECT * FROM comissions WHERE uid=%s AND input_date < %s AND input_date > %s'
 			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
 			res = cursor.fetchall()
 			for x in res:
 				operations.append(x)
-				operations[-1]['title'] = 'Оплата комиссии'
+				operations[-1]['title'] = 'Удержание комиссии'
 				operations[-1]['table'] = 'comissions'
 			
-			sql = 'SELECT * FROM couponincome WHERE uid=%s AND date < %s AND date > %s'
+			sql = 'SELECT * FROM couponincome WHERE uid=%s AND input_date < %s AND input_date > %s'
 			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
 			res = cursor.fetchall()
 			for x in res:
 				operations.append(x)
-				operations[-1]['title'] = 'Получение купонного дохода'
+				operations[-1]['title'] = 'Зачисление купонного дохода'
 				operations[-1]['table'] = 'couponincome'
 			
-			sql = 'SELECT * FROM dividends WHERE uid=%s AND date < %s AND date > %s'
+			sql = 'SELECT * FROM dividends WHERE uid=%s AND input_date < %s AND input_date > %s'
 			cursor.execute(sql, (uid, start_timestamp, end_timestamp))
 			res = cursor.fetchall()
 			for x in res:
 				operations.append(x)
-				operations[-1]['title'] = 'Получение дивидендов'
+				operations[-1]['title'] = 'Зачисление дивидендов'
 				operations[-1]['table'] = 'dividends'
 
 		connection.commit()
-		return sorted(operations, key=itemgetter('date'), reverse=False)
+		return sorted(operations, key=itemgetter('input_date'), reverse=False)
 	finally:
 		connection.close()
 
@@ -603,6 +604,30 @@ def update_moex():
 	return None
 
 
+def get_timestamp(str_date):
+	"""
+	Получить timestamp из строка 
+
+	:param: str_date - строка формата ДД.ММ.ГГГГ
+	:return: timestamp (int) если строка валидная или None
+	"""
+	date_arr = str_date.split('.')
+	if not len(date_arr) == 3:
+		return None
+	try:
+		dt = datetime.datetime(int(date_arr[2]), int(date_arr[1]), int(date_arr[0])) 
+		# Добавить +3 часа, что бы сойтись с мировым временем
+		dt += datetime.timedelta(hours=3)
+	except:
+		return None
+	try:
+		unixtime = int(time.mktime(dt.timetuple()))
+	except:
+		return None
+	return unixtime
+
+
+# print(get_timestamp('21.03.3000'))
 # print(Moex.get_stock_price('CHMF'))
 # print(Moex.get_bond_price('RU000A100048'))
 # update_moex()
