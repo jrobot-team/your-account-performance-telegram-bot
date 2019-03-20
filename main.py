@@ -31,7 +31,7 @@ READY_TO_DIVIDENDS = {}
 def start_message_handler(message):
 	cid = message.chat.id
 	uid = message.from_user.id
-	text = 'Главное меню'  # TODO: текущее состояние счета
+	text = 'Главное меню'
 	markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=1)
 	for x in config.main_markup:
 		markup.row(*x)
@@ -61,7 +61,7 @@ def text_handler(message):
 			del READY_TO_DIVIDENDS[uid]
 		text = 'Операция отменена'
 		bot.send_message(cid, text)
-		text = 'Главное меню'  # TODO: текущее состояние счета
+		text = 'Действие отменено'
 		markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=1)
 		for x in config.main_markup:
 			markup.row(*x)
@@ -137,13 +137,15 @@ def text_handler(message):
 		keyboard.add(types.InlineKeyboardButton(text='Отмена', callback_data='cancelldelete'))
 		return bot.send_message(cid, text, reply_markup=keyboard)
 
+	'''
 	# Вернуться в главное меню
 	if message.text == '↩️ Назад':
-		text = 'Главное меню'  # TODO: текущее состояние счета
+		text = 'Главное меню'
 		markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=1)
 		for x in config.main_markup:
 			markup.row(*x)
 		return bot.send_message(cid, text, reply_markup=markup)
+	'''
 
 	# Обработать главное меню
 	if message.text == 'Добавить операцию':
@@ -153,7 +155,19 @@ def text_handler(message):
 			keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
 		return bot.send_message(cid, text, reply_markup=keyboard)
 	elif message.text == 'Портфель' or message.text == '⤴️ Назад':
-		text = 'Портфель'  # TODO: информация о портфеле
+		account_price = util.get_account_state(uid)
+		text = 'Текущее состояние счета: {!s}руб\n\n'.format(int(account_price))
+		portfolio = util.get_portfolio(uid)
+		for x in portfolio['stocks']:
+			text += 'Пакет акций {!s}\nКоличество: {!s}\nСредняя цена: {!s}\n'.format(
+				x['ticker'], x['count'], int(x['average_price']))
+			text += 'Текущая стоимость: {!s}\nПрибыль/убыток: {!s}\n\n'.format(
+				int(x['current_price']), int(x['price_difference']))
+		for x in portfolio['bonds']:
+			text += 'Пакет облигаций {!s}\nКоличество: {!s}\nСредняя цена: {!s}\n'.format(
+				x['ticker'], x['count'], int(x['average_price']))
+			text += 'Текущая стоимость: {!s}\nПрибыль/убыток: {!s}\n\n'.format(
+				int(x['current_price']), int(x['price_difference']))
 		keyboard = types.InlineKeyboardMarkup()
 		for x in config.schet_markup:
 			keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
@@ -246,17 +260,12 @@ def text_handler(message):
 			text = 'Укажите тикер'
 			return bot.send_message(cid, text)
 		if 'ticker' not in READY_TO_buystock[uid]:
-			'''
-			TODO
 			api_price = util.Moex.get_stock_price(message.text)
 			if not api_price:
 				text = 'Такого тикера не существует'
 				return bot.send_message(cid, text)
 			READY_TO_buystock[uid]['api_price'] = api_price
-			'''
-			READY_TO_buystock[uid]['api_price'] = 0
-
-			READY_TO_buystock[uid]['ticker'] = message.text
+			READY_TO_buystock[uid]['ticker'] = message.text.upper()
 			text = 'Укажите количество акций'
 			return bot.send_message(cid, text)
 		if 'count' not in READY_TO_buystock[uid]:
@@ -308,7 +317,7 @@ def text_handler(message):
 			text = 'Укажите тикер'
 			return bot.send_message(cid, text)
 		if 'ticker' not in READY_TO_salestock[uid]:
-			READY_TO_salestock[uid]['ticker'] = message.text
+			READY_TO_salestock[uid]['ticker'] = message.text.upper()
 			text = 'Укажите количество акций'
 			return bot.send_message(cid, text)
 		if 'count' not in READY_TO_salestock[uid]:
@@ -359,16 +368,14 @@ def text_handler(message):
 			text = 'Укажите тикер'
 			return bot.send_message(cid, text)
 		if 'ticker' not in READY_TO_buybond[uid]:
-			'''
-			TODO
 			api_price = util.Moex.get_bond_price(message.text)
+			api_nkd = util.Moex.get_bond_nkd(message.text)
 			if not api_price:
 				text = 'Такого тикера не существует'
 				return bot.send_message(cid, text)
 			READY_TO_buybond[uid]['api_price'] = api_price
-			'''
-			READY_TO_buybond[uid]['api_price'] = 0
-			READY_TO_buybond[uid]['ticker'] = message.text
+			READY_TO_buybond[uid]['api_nkd'] = api_nkd
+			READY_TO_buybond[uid]['ticker'] = message.text.upper()
 			text = 'Укажите количество облигаций'
 			return bot.send_message(cid, text)
 		if 'count' not in READY_TO_buybond[uid]:
@@ -404,7 +411,8 @@ def text_handler(message):
 				READY_TO_buybond[uid]['nkd'],
 				READY_TO_buybond[uid]['price'],
 				READY_TO_buybond[uid]['broker'],
-				READY_TO_buybond[uid]['api_price'])
+				READY_TO_buybond[uid]['api_price'],
+				READY_TO_buybond[uid]['api_nkd'])
 			print(READY_TO_buybond[uid])
 			del READY_TO_buybond[uid]
 			text = 'Операция успешно добавлена'
@@ -430,7 +438,7 @@ def text_handler(message):
 			text = 'Укажите тикер'
 			return bot.send_message(cid, text)
 		if 'ticker' not in READY_TO_salebond[uid]:
-			READY_TO_salebond[uid]['ticker'] = message.text
+			READY_TO_salebond[uid]['ticker'] = message.text.upper()
 			text = 'Укажите количество облигаций'
 			return bot.send_message(cid, text)
 		if 'count' not in READY_TO_salebond[uid]:
@@ -1040,8 +1048,8 @@ def main():
 	th1.start()
 	if config.DEBUG:
 		# apihelper.proxy = {'https': 'socks5h://TV360_4_217166737:rkO8KhVov4x93EKs@0x5c.private.ss5.ch:1080'}
-		apihelper.proxy = {'https': 'socks5h://174.76.20.209:38583'}
-		bot.polling()
+		apihelper.proxy = {'https': 'socks5h://111.223.75.178:8888'}
+		bot.polling(none_stop=True, interval=0)
 	else:
 		while True:
 			try:
