@@ -60,7 +60,7 @@ class DataBase:
 					`count` int(11) COLLATE utf8_general_ci NOT NULL,
 					`broker` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`price` varchar(255) COLLATE utf8_general_ci NOT NULL,
-					`api_price` int(11),
+					`api_price` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					PRIMARY KEY (`id`)
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
 				AUTO_INCREMENT=1;
@@ -92,7 +92,7 @@ class DataBase:
 					`nkd` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`broker` varchar(255) COLLATE utf8_general_ci,
 					`price` varchar(255) COLLATE utf8_general_ci NOT NULL,
-					`api_price` int(11),
+					`api_price` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`api_nkd` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					PRIMARY KEY (`id`)
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
@@ -677,9 +677,21 @@ def get_portfolio(uid):
 			# Получить все купленные тикеры акций
 			sql = 'SELECT DISTINCT ticker FROM buystock WHERE uid=%s'
 			cursor.execute(sql, (uid,))
-			tickers = cursor.fetchall()
-			for x in tickers:
-				ticker = x['ticker']
+			tickers_buy = cursor.fetchall()
+			sql = 'SELECT DISTINCT ticker FROM salestock WHERE uid=%s'
+			cursor.execute(sql, (uid,))
+			tickers_sale = cursor.fetchall()
+			print(tickers_buy, tickers_sale)
+			tickers = []
+			for x in tickers_buy:
+				if x['ticker'] not in tickers:
+					tickers.append(x['ticker'])
+			for x in tickers_sale:
+				if x['ticker'] not in tickers:
+					tickers.append(x['ticker'])
+			print(tickers)
+			for ticker in tickers:
+				# ticker = x['ticker']
 				sql = 'SELECT * FROM buystock WHERE uid=%s AND ticker=%s'
 				cursor.execute(sql, (uid, ticker))
 				res1 = cursor.fetchall()
@@ -711,7 +723,11 @@ def get_portfolio(uid):
 				print(average_price)
 
 				# Текущая стоимость
-				current_price = float(res1[0]['api_price']) * count
+				if len(res1) == 0:
+					api_price = Moex.get_stock_price(ticker)
+				else:
+					api_price = res1[0]['api_price']
+				current_price = float(api_price) * count
 				print(current_price)
 				# Разница стоимости
 				price_difference = current_price - average_price * count
@@ -728,9 +744,21 @@ def get_portfolio(uid):
 			# Получить все купленные тикеры облигаций
 			sql = 'SELECT DISTINCT ticker FROM buybond WHERE uid=%s'
 			cursor.execute(sql, (uid,))
-			tickers = cursor.fetchall()
-			for x in tickers:
-				ticker = x['ticker']
+			tickers_buy = cursor.fetchall()
+			sql = 'SELECT DISTINCT ticker FROM salebond WHERE uid=%s'
+			cursor.execute(sql, (uid,))
+			tickers_sale = cursor.fetchall()
+			print(tickers_buy, tickers_sale)
+			tickers = []
+			for x in tickers_buy:
+				if x['ticker'] not in tickers:
+					tickers.append(x['ticker'])
+			for x in tickers_sale:
+				if x['ticker'] not in tickers:
+					tickers.append(x['ticker'])
+			print(tickers)
+			for ticker in tickers:
+				# ticker = x['ticker']
 				sql = 'SELECT * FROM buybond WHERE uid=%s AND ticker=%s'
 				cursor.execute(sql, (uid, ticker))
 				res1 = cursor.fetchall()
@@ -762,7 +790,13 @@ def get_portfolio(uid):
 				print(average_price)
 
 				# Текущая стоимость
-				current_price = (float(res1[0]['api_price']) + float(res1[0]['api_nkd'])) * count
+				if len(res1) == 0:
+					api_price = Moex.get_bond_price(ticker)
+					api_nkd = Moex.get_bond_nkd(ticker)
+				else:
+					api_price = res1[0]['api_price']
+					api_nkd = res1[0]['api_nkd']
+				current_price = (float(api_price) + float(api_nkd)) * count
 				print(current_price)
 				# Разница стоимости
 				price_difference = current_price - average_price * count
@@ -825,8 +859,8 @@ def get_account_state(uid):
 			cursor.execute(sql, (uid,))
 			res = cursor.fetchall()
 			for x in res:
-				amount -= int(x['price']) * int(x['count'])
-				amount -= int(x['nkd'])
+				amount -= float(x['price']) * int(x['count'])
+				amount -= float(x['nkd'])
 			# Высчитать продажу облигаций
 			sql = 'SELECT * FROM salebond WHERE uid=%s'
 			cursor.execute(sql, (uid,))

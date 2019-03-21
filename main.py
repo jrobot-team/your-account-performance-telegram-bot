@@ -155,6 +155,8 @@ def text_handler(message):
 			keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
 		return bot.send_message(cid, text, reply_markup=keyboard)
 	elif message.text == 'Портфель' or message.text == '⤴️ Назад':
+		text = 'Обработка данных...'
+		msg = bot.send_message(cid, text)
 		account_price = util.get_account_state(uid)
 		text = 'Текущее состояние счета: {!s}руб\n\n'.format(int(account_price))
 		portfolio = util.get_portfolio(uid)
@@ -171,7 +173,8 @@ def text_handler(message):
 		keyboard = types.InlineKeyboardMarkup()
 		for x in config.schet_markup:
 			keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
-		return bot.send_message(cid, text, reply_markup=keyboard)
+		# return bot.send_message(cid, text, reply_markup=keyboard)
+		return bot.edit_message_text(text, chat_id=msg.chat.id, message_id=msg.message_id, reply_markup=keyboard)
 
 	# Обработать состояние добавления средств
 	if uid in READY_TO_ADD_AMOUNT:
