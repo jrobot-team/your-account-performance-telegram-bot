@@ -534,14 +534,21 @@ class Moex:
 			current_date = datetime.datetime.now().strftime('%Y-%m-%d')
 			last_day = (datetime.datetime.now() - datetime.timedelta(days=30)).strftime('%Y-%m-%d')
 			res = requests.get('http://iss.moex.com/iss/securities.json?q={!s}'.format(tiker))
-			board = res.json()['securities']['data'][0][-1]
+			board = ''
+			for x in res.json()['securities']['data']:
+				if x[1] == tiker:
+					board = x[-1]
+					break
+			if len(board) == 0:
+				return None
+			# board = res.json()['securities']['data'][0][-1]
 			url = 'http://iss.moex.com/iss/history/engines/stock/markets/shares/boards/{!s}/securities/{!s}.json?from={!s}&till={!s}'.format(
 				board, tiker, last_day, current_date
 			)
 			print(url)
 			res = requests.get(url)
 			price = res.json()['history']['data'][-1][9]
-			return int(price)
+			return float('{0: >#016.2f}'.format(float(price)).strip())
 		except Exception as e:
 			print(e)
 			return None
@@ -860,7 +867,7 @@ def get_account_state(uid):
 # print(get_account_state(217166737))
 # print(get_portfolio(217166737))
 # print(get_timestamp('21.03.3000'))
-# print(Moex.get_stock_price('MTSS'))
+# print(Moex.get_stock_price('SBER'))
 # print(Moex.get_bond_price('SU26210RMFS3'))
 # print(Moex.get_bond_nkd('SU26210RMFS3'))
 # update_moex()
