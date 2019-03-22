@@ -963,9 +963,24 @@ def get_account_state(uid):
 		connection.close()
 
 
+def get_portfolio_amount(uid):
+	"""
+	Получить накопленную прибыль/убыток
+	"""
+	data = get_portfolio(uid)
+	print(data)
+	amount = 0
+	for x in data['stocks']:
+		amount += x['price_difference']
+	for x in data['bonds']:
+		amount += x['price_difference']
+	return int(amount)
+
+
 # print(get_account_state(217166737))
 # print(get_portfolio(217166737))
 # print(get_timestamp('21.03.3000'))
 # print(Moex.get_stock_price('SBER'))
 # print(Moex.get_bond_data('SU26210RMFS3'))
+# print(get_portfolio_amount(217166737))
 # update_moex()

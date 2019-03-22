@@ -155,13 +155,14 @@ def text_handler(message):
 			keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
 		return bot.send_message(cid, text, reply_markup=keyboard)
 	elif message.text == 'Портфель':
+		account = util.get_account_state(uid)
+		portfolio_amount = util.get_portfolio_amount(uid)
+		text = 'На брокерских счетах {!s} ₽, в т.ч. денежных средств {!s} ₽. Накопленная прибыль/убыток {!s} ₽'.format(
+			int(account['amount']), int(account['money_amount']), portfolio_amount)
+		bot.send_message(cid, text)
 		text = 'Обработка данных...'
 		msg = bot.send_message(cid, text)
-		account = util.get_account_state(uid)
-		text = 'На брокерских счетах {!s} ₽, в т.ч. денежных средств {!s} ₽. Накопленная прибыль/убыток {!s} ₽'.format(
-			int(account['broker_amount']), int(account['money_amount']), int(account['amount']))
-		bot.send_message(cid, text)
-		text = 'Денежные средства {!s} ₽\n\n'.format(int(account['money_amount']))
+		text = ''
 		portfolio = util.get_portfolio(uid)
 		for x in portfolio['stocks']:
 			text += '*{!s}*\nВ портфеле {!s} шт.\nСред. цена {!s} ₽\n'.format(
