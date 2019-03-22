@@ -173,6 +173,8 @@ def text_handler(message):
 				x['ticker'], x['count'], int(x['average_price']))
 			text += 'Цена закрытия: {!s} ₽\nСтоимость {!s} ₽\nПрибыль/убыток {!s} ₽\n\n'.format(
 				int(x['close_price']), int(x['current_price']), int(x['price_difference']))
+		if len(text) == 0:
+			text = 'Вы ещё не совершали ни одной операции'
 		keyboard = types.InlineKeyboardMarkup()
 		for x in config.schet_markup:
 			keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
