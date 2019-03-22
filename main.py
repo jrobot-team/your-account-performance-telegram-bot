@@ -157,24 +157,26 @@ def text_handler(message):
 	elif message.text == 'Портфель' or message.text == '⤴️ Назад':
 		text = 'Обработка данных...'
 		msg = bot.send_message(cid, text)
-		account_price = util.get_account_state(uid)
-		text = 'Текущее состояние счета: {!s}руб\n\n'.format(int(account_price))
+		account = util.get_account_state(uid)
+		text = 'На брокерских счетах {!s} ₽, в т.ч. денежных средств {!s} ₽. Накопленная прибыль/убыток {!s} ₽'.format(
+			int(account['broker_amount']), int(account['money_amount']), int(account['amount']))
+		bot.send_message(cid, text)
+		text = ''
 		portfolio = util.get_portfolio(uid)
 		for x in portfolio['stocks']:
-			text += 'Пакет акций {!s}\nКоличество: {!s}\nСредняя цена: {!s}\n'.format(
+			text += '*{!s}*\nВ портфеле {!s} шт.\nСред. цена {!s} ₽\n'.format(
 				x['ticker'], x['count'], int(x['average_price']))
-			text += 'Текущая стоимость: {!s}\nПрибыль/убыток: {!s}\n\n'.format(
-				int(x['current_price']), int(x['price_difference']))
+			text += 'Цена закрытия: {!s} ₽\nСтоимость {!s} ₽\nПрибыль/убыток {!s} ₽\n\n'.format(
+				int(x['close_price']), int(x['current_price']), int(x['price_difference']))
 		for x in portfolio['bonds']:
-			text += 'Пакет облигаций {!s}\nКоличество: {!s}\nСредняя цена: {!s}\n'.format(
+			text += '*{!s}*\nВ портфеле {!s} шт.\nСред. цена {!s} ₽\n'.format(
 				x['ticker'], x['count'], int(x['average_price']))
-			text += 'Текущая стоимость: {!s}\nПрибыль/убыток: {!s}\n\n'.format(
-				int(x['current_price']), int(x['price_difference']))
+			text += 'Цена закрытия: {!s} ₽\nСтоимость {!s} ₽\nПрибыль/убыток {!s} ₽\n\n'.format(
+				int(x['close_price']), int(x['current_price']), int(x['price_difference']))
 		keyboard = types.InlineKeyboardMarkup()
 		for x in config.schet_markup:
 			keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
-		# return bot.send_message(cid, text, reply_markup=keyboard)
-		return bot.edit_message_text(text, chat_id=msg.chat.id, message_id=msg.message_id, reply_markup=keyboard)
+		return bot.edit_message_text(text, chat_id=msg.chat.id, message_id=msg.message_id, reply_markup=keyboard, parse_mode='MARKDOWN')
 
 	# Обработать состояние добавления средств
 	if uid in READY_TO_ADD_AMOUNT:
@@ -191,6 +193,7 @@ def text_handler(message):
 			text = 'Укажите сумму'
 			return bot.send_message(cid, text)
 		if 'amount' not in READY_TO_ADD_AMOUNT[uid]:
+			message.text = message.text.replace(',', '.')
 			try:
 				float(message.text)
 			except Exception as e:
@@ -227,6 +230,7 @@ def text_handler(message):
 			text = 'Укажите сумму'
 			return bot.send_message(cid, text)
 		if 'amount' not in READY_TO_MINUS_ACCOUNT[uid]:
+			message.text = message.text.replace(',', '.')
 			try:
 				float(message.text)
 			except Exception as e:
@@ -281,6 +285,7 @@ def text_handler(message):
 			text = 'Укажите цену акции'
 			return bot.send_message(cid, text)
 		if 'price' not in READY_TO_buystock[uid]:
+			message.text = message.text.replace(',', '.')
 			try:
 				float(message.text)
 			except Exception as e:
@@ -333,6 +338,7 @@ def text_handler(message):
 			text = 'Укажите цену акции'
 			return bot.send_message(cid, text)
 		if 'price' not in READY_TO_salestock[uid]:
+			message.text = message.text.replace(',', '.')
 			try:
 				float(message.text)
 			except Exception as e:
@@ -371,13 +377,14 @@ def text_handler(message):
 			text = 'Укажите тикер'
 			return bot.send_message(cid, text)
 		if 'ticker' not in READY_TO_buybond[uid]:
-			api_price = util.Moex.get_bond_price(message.text)
-			api_nkd = util.Moex.get_bond_nkd(message.text)
-			if not api_price:
+			data = util.Moex.get_bond_data(message.text)
+			if not data:
 				text = 'Такого тикера не существует'
 				return bot.send_message(cid, text)
-			READY_TO_buybond[uid]['api_price'] = api_price
-			READY_TO_buybond[uid]['api_nkd'] = api_nkd
+			READY_TO_buybond[uid]['api_price'] = data['price']
+			READY_TO_buybond[uid]['api_nkd'] = data['nkd']
+			READY_TO_buybond[uid]['api_FACEVALUE'] = data['FACEVALUE']
+			READY_TO_buybond[uid]['api_ACCINT'] = data['ACCINT']
 			READY_TO_buybond[uid]['ticker'] = message.text.upper()
 			text = 'Укажите количество облигаций'
 			return bot.send_message(cid, text)
@@ -391,6 +398,7 @@ def text_handler(message):
 			text = 'Укажите цену облигации'
 			return bot.send_message(cid, text)
 		if 'price' not in READY_TO_buybond[uid]:
+			message.text = message.text.replace(',', '.')
 			try:
 				float(message.text)
 			except Exception as e:
@@ -400,6 +408,7 @@ def text_handler(message):
 			text = 'Укажите НКД'
 			return bot.send_message(cid, text)
 		if 'nkd' not in READY_TO_buybond[uid]:
+			message.text = message.text.replace(',', '.')
 			try:
 				float(message.text)
 			except Exception as e:
@@ -415,7 +424,9 @@ def text_handler(message):
 				READY_TO_buybond[uid]['price'],
 				READY_TO_buybond[uid]['broker'],
 				READY_TO_buybond[uid]['api_price'],
-				READY_TO_buybond[uid]['api_nkd'])
+				READY_TO_buybond[uid]['api_nkd'],
+				READY_TO_buybond[uid]['api_FACEVALUE'],
+				READY_TO_buybond[uid]['api_ACCINT'])
 			print(READY_TO_buybond[uid])
 			del READY_TO_buybond[uid]
 			text = 'Операция успешно добавлена'
@@ -454,6 +465,7 @@ def text_handler(message):
 			text = 'Укажите цену облигации'
 			return bot.send_message(cid, text)
 		if 'price' not in READY_TO_salebond[uid]:
+			message.text = message.text.replace(',', '.')
 			try:
 				float(message.text)
 			except Exception as e:
@@ -463,6 +475,7 @@ def text_handler(message):
 			text = 'Укажите НКД'
 			return bot.send_message(cid, text)
 		if 'nkd' not in READY_TO_salebond[uid]:
+			message.text = message.text.replace(',', '.')
 			try:
 				float(message.text)
 			except Exception as e:
@@ -502,6 +515,7 @@ def text_handler(message):
 			text = 'Укажите сумму'
 			return bot.send_message(cid, text)
 		if 'amount' not in READY_TO_TAX[uid]:
+			message.text = message.text.replace(',', '.')
 			try:
 				float(message.text)
 			except Exception as e:
@@ -538,6 +552,7 @@ def text_handler(message):
 			text = 'Укажите сумму'
 			return bot.send_message(cid, text)
 		if 'amount' not in READY_TO_COMISSION[uid]:
+			message.text = message.text.replace(',', '.')
 			try:
 				float(message.text)
 			except Exception as e:
@@ -578,6 +593,7 @@ def text_handler(message):
 			text = 'Укажите сумму'
 			return bot.send_message(cid, text)
 		if 'amount' not in READY_TO_couponincome[uid]:
+			message.text = message.text.replace(',', '.')
 			try:
 				float(message.text)
 			except Exception as e:
@@ -619,6 +635,7 @@ def text_handler(message):
 			text = 'Укажите сумму'
 			return bot.send_message(cid, text)
 		if 'amount' not in READY_TO_DIVIDENDS[uid]:
+			message.text = message.text.replace(',', '.')
 			try:
 				float(message.text)
 			except Exception as e:

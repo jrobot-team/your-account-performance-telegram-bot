@@ -94,6 +94,8 @@ class DataBase:
 					`price` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`api_price` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					`api_nkd` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`api_FACEVALUE` varchar(255) COLLATE utf8_general_ci NOT NULL,
+					`api_ACCINT` varchar(255) COLLATE utf8_general_ci NOT NULL,
 					PRIMARY KEY (`id`)
 				) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_general_ci
 				AUTO_INCREMENT=1;
@@ -254,7 +256,7 @@ class DataBase:
 			connection.close()
 
 	@staticmethod
-	def add_buybond(uid, date, input_date, ticker, count, nkd, price, broker, api_price=0, api_nkd=0):
+	def add_buybond(uid, date, input_date, ticker, count, nkd, price, broker, api_price, api_nkd, api_FACEVALUE, api_ACCINT):
 		"""
 		Покупка облигаций
 		"""
@@ -267,8 +269,8 @@ class DataBase:
 			cursorclass=pymysql.cursors.DictCursor)
 		try:
 			with connection.cursor() as cursor:
-				sql = 'INSERT INTO `buybond` (`uid`, `date`, `input_date` ,`ticker`, `count`, `nkd`, `price`, `broker`, `api_price`, `api_nkd`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
-				cursor.execute(sql, (uid, date, input_date, ticker, count, nkd, price, broker, api_price, api_nkd))
+				sql = 'INSERT INTO `buybond` (`uid`, `date`, `input_date` ,`ticker`, `count`, `nkd`, `price`, `broker`, `api_price`, `api_nkd`, `api_FACEVALUE`, `api_ACCINT`) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)'
+				cursor.execute(sql, (uid, date, input_date, ticker, count, nkd, price, broker, api_price, api_nkd, api_FACEVALUE, api_ACCINT))
 			connection.commit()
 		finally:
 			connection.close()
@@ -556,6 +558,7 @@ class Moex:
 	@staticmethod
 	def get_bond_price(code):
 		"""
+		DEPRECATED!
 		Получить стоимость облигации
 		"""
 		try:
@@ -577,6 +580,7 @@ class Moex:
 	@staticmethod
 	def get_bond_nkd(code):
 		"""
+		DEPRECATED!
 		Получить стоимость облигации
 		"""
 		try:
@@ -591,6 +595,42 @@ class Moex:
 			print(url)
 			nkd = res.json()['history']['data'][-1][27]
 			return float('{0: >#016.2f}'.format(float(nkd)).strip())
+		except Exception as e:
+			print(e)
+			return None
+
+	@staticmethod
+	def get_bond_data(code):
+		"""
+		Получить стоимость облигации
+		"""
+		try:
+			current_date = datetime.datetime.now().strftime('%Y-%m-%d')
+			last_day = (datetime.datetime.now() - datetime.timedelta(days=30)).strftime('%Y-%m-%d')
+			res = requests.get('http://iss.moex.com/iss/securities.json?q={!s}'.format(code))
+			board = res.json()['securities']['data'][0][-1]
+			url = 'http://iss.moex.com/iss/history/engines/stock/markets/bonds/boards/{!s}/securities/{!s}.json?from={!s}&till={!s}'.format(
+				board, code, last_day, current_date
+			)
+			res = requests.get(url)
+			print(url)
+
+			price = res.json()['history']['data'][-1][9]
+			nkd = res.json()['history']['data'][-1][27]
+			FACEVALUE = res.json()['history']['data'][-1][30]
+			ACCINT = res.json()['history']['data'][-1][10]
+
+			price = float('{0: >#016.2f}'.format(float(price)).strip())
+			nkd = float('{0: >#016.2f}'.format(float(nkd)).strip())
+			FACEVALUE = float('{0: >#016.2f}'.format(float(FACEVALUE)).strip())
+			ACCINT = float('{0: >#016.2f}'.format(float(ACCINT)).strip())
+
+			return {
+				'price': price,
+				'nkd': nkd,
+				'FACEVALUE': FACEVALUE,
+				'ACCINT': ACCINT,
+			}
 		except Exception as e:
 			print(e)
 			return None
@@ -624,10 +664,9 @@ def update_moex():
 			res = cursor.fetchall()
 			print(res)
 			for bond in res:
-				new_api_price = Moex.get_bond_price(bond['ticker'])
-				new_api_nkd = Moex.get_bond_nkd(bond['ticker'])
-				sql = 'UPDATE buybond SET api_price=%s, api_nkd=%s WHERE id=%s'
-				cursor.execute(sql, (new_api_price, new_api_nkd, bond['id']))
+				data = Moex.get_bond_data(bond['ticker'])
+				sql = 'UPDATE buybond SET api_price=%s, api_nkd=%s, api_FACEVALUE=%s, api_ACCINT=%s WHERE id=%s'
+				cursor.execute(sql, (data['price'], data['nkd'], data['FACEVALUE'], data['ACCINT'], bond['id']))
 		connection.commit()
 	finally:
 		connection.close()
@@ -736,9 +775,10 @@ def get_portfolio(uid):
 				result['stocks'].append({
 					'ticker': ticker,
 					'count': count,
-					'average_price': average_price,
-					'current_price': current_price,
-					'price_difference': price_difference,
+					'average_price': float('{0: >#016.2f}'.format(float(average_price))),
+					'close_price': float('{0: >#016.2f}'.format(float(api_price))),
+					'current_price': float('{0: >#016.2f}'.format(float(current_price))),
+					'price_difference': float('{0: >#016.2f}'.format(float(price_difference))),
 				})
 
 			# Получить все купленные тикеры облигаций
@@ -791,12 +831,18 @@ def get_portfolio(uid):
 
 				# Текущая стоимость
 				if len(res1) == 0:
-					api_price = Moex.get_bond_price(ticker)
-					api_nkd = Moex.get_bond_nkd(ticker)
+					data = Moex.get_bond_data(ticker)
+					api_price = data['price']
+					api_nkd = data['nkd']
+					api_FACEVALUE = data['FACEVALUE']
+					api_ACCINT = data['ACCINT']
 				else:
 					api_price = res1[0]['api_price']
 					api_nkd = res1[0]['api_nkd']
-				current_price = (float(api_price) + float(api_nkd)) * count
+					api_FACEVALUE = res1[0]['api_FACEVALUE']
+					api_ACCINT = res1[0]['api_ACCINT']
+				# current_price = (float(api_price) + float(api_nkd)) * count
+				current_price = (float(api_price) * float(api_FACEVALUE) / 100 + float(api_ACCINT)) * count
 				print(current_price)
 				# Разница стоимости
 				price_difference = current_price - average_price * count
@@ -806,9 +852,10 @@ def get_portfolio(uid):
 				result['bonds'].append({
 					'ticker': ticker,
 					'count': count,
-					'average_price': average_price,
-					'current_price': current_price,
-					'price_difference': price_difference,
+					'average_price': float('{0: >#016.2f}'.format(float(average_price))),
+					'close_price': float('{0: >#016.2f}'.format(float(api_price))),
+					'current_price': float('{0: >#016.2f}'.format(float(current_price))),
+					'price_difference': float('{0: >#016.2f}'.format(float(price_difference))),
 				})
 		connection.commit()
 		return result
@@ -828,6 +875,8 @@ def get_account_state(uid):
 		charset=config.db_charset,
 		cursorclass=pymysql.cursors.DictCursor)
 	try:
+		broker_amount = 0
+		money_amount = 0
 		amount = 0
 		with connection.cursor() as cursor:
 			# Высчитать пополнение счета
@@ -836,24 +885,28 @@ def get_account_state(uid):
 			res = cursor.fetchall()
 			for x in res:
 				amount += float(x['amount'])
+				money_amount += float(x['amount'])
 			# Высчитать вывод средств
 			sql = 'SELECT * FROM accountminusamount WHERE uid=%s'
 			cursor.execute(sql, (uid,))
 			res = cursor.fetchall()
 			for x in res:
 				amount -= float(x['amount'])
+				money_amount -= float(x['amount'])
 			# Высчитать покупку акций
 			sql = 'SELECT * FROM buystock WHERE uid=%s'
 			cursor.execute(sql, (uid,))
 			res = cursor.fetchall()
 			for x in res:
 				amount -= float(x['price']) * int(x['count'])
+				broker_amount += float(x['price']) * int(x['count'])
 			# Высчитать продажу акций
 			sql = 'SELECT * FROM salestock WHERE uid=%s'
 			cursor.execute(sql, (uid,))
 			res = cursor.fetchall()
 			for x in res:
 				amount += float(x['price']) * int(x['count'])
+				broker_amount -= float(x['price']) * int(x['count'])
 			# Высчитать покупку облигаций
 			sql = 'SELECT * FROM buybond WHERE uid=%s'
 			cursor.execute(sql, (uid,))
@@ -861,6 +914,8 @@ def get_account_state(uid):
 			for x in res:
 				amount -= float(x['price']) * int(x['count'])
 				amount -= float(x['nkd'])
+				broker_amount += float(x['price']) * int(x['count'])
+				broker_amount += float(x['nkd'])
 			# Высчитать продажу облигаций
 			sql = 'SELECT * FROM salebond WHERE uid=%s'
 			cursor.execute(sql, (uid,))
@@ -868,32 +923,42 @@ def get_account_state(uid):
 			for x in res:
 				amount += float(x['price']) * int(x['count']) 
 				amount += float(x['nkd'])
+				broker_amount -= float(x['price']) * int(x['count'])
+				broker_amount -= float(x['nkd'])
 			# Высчитать удержание налога
 			sql = 'SELECT * FROM taxes WHERE uid=%s'
 			cursor.execute(sql, (uid,))
 			res = cursor.fetchall()
 			for x in res:
 				amount -= float(x['amount'])
+				money_amount -= float(x['amount'])
 			# Высчитать удержание комиссии
 			sql = 'SELECT * FROM comissions WHERE uid=%s'
 			cursor.execute(sql, (uid,))
 			res = cursor.fetchall()
 			for x in res:
 				amount -= float(x['amount'])
+				money_amount -= float(x['amount'])
 			# Высчитать зачисление купонного дохода
 			sql = 'SELECT * FROM couponincome WHERE uid=%s'
 			cursor.execute(sql, (uid,))
 			res = cursor.fetchall()
 			for x in res:
 				amount += float(x['amount'])
+				money_amount += float(x['amount'])
 			# Высчитать стоимость дивидедов
 			sql = 'SELECT * FROM dividends WHERE uid=%s'
 			cursor.execute(sql, (uid,))
 			res = cursor.fetchall()
 			for x in res:
 				amount += float(x['amount'])
+				money_amount += float(x['amount'])
 		connection.commit()
-		return amount
+		return {
+			'amount': amount,
+			'money_amount': money_amount,
+			'broker_amount': broker_amount,
+		}
 	finally:
 		connection.close()
 
@@ -902,6 +967,5 @@ def get_account_state(uid):
 # print(get_portfolio(217166737))
 # print(get_timestamp('21.03.3000'))
 # print(Moex.get_stock_price('SBER'))
-# print(Moex.get_bond_price('SU26210RMFS3'))
-# print(Moex.get_bond_nkd('SU26210RMFS3'))
+# print(Moex.get_bond_data('SU26210RMFS3'))
 # update_moex()
