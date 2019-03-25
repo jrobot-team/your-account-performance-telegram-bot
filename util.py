@@ -971,9 +971,9 @@ def get_portfolio_amount(uid):
 	print(data)
 	amount = 0
 	for x in data['stocks']:
-		amount += x['price_difference']
+		amount += x['current_price']
 	for x in data['bonds']:
-		amount += x['price_difference']
+		amount += x['current_price']
 	return int(amount)
 
 

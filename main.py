@@ -167,13 +167,13 @@ def text_handler(message):
 		for x in portfolio['stocks']:
 			text += '*{!s}*\nВ портфеле {!s} шт.\nСред. цена {!s} ₽\n'.format(
 				x['ticker'], x['count'], int(x['average_price']))
-			text += 'Цена закрытия: {!s} ₽\nСтоимость {!s} ₽\nПрибыль/убыток {!s} ₽\n\n'.format(
+			text += 'Цена закрытия {!s} ₽\nСтоимость {!s} ₽\nПрибыль/убыток {!s} ₽\n\n'.format(
 				int(x['close_price']), int(x['current_price']), int(x['price_difference']))
 		for x in portfolio['bonds']:
 			text += '*{!s}*\nВ портфеле {!s} шт.\nСред. цена {!s} ₽\n'.format(
 				x['ticker'], x['count'], int(x['average_price']))
-			text += 'Цена закрытия: {!s} ₽\nСтоимость {!s} ₽\nПрибыль/убыток {!s} ₽\n\n'.format(
-				int(x['close_price']), int(x['current_price']), int(x['price_difference']))
+			text += 'Цена закрытия {!s} %\nСтоимость {!s} ₽\nПрибыль/убыток {!s} ₽\n\n'.format(
+				x['close_price'], int(x['current_price']), int(x['price_difference']))
 		if len(text) == 0:
 			text = 'Вы ещё не совершали ни одной операции'
 		keyboard = types.InlineKeyboardMarkup()
@@ -1059,7 +1059,7 @@ def monitor():
 	"""
 	Обновлять данные с биржи раз в сутки
 	"""
-	schedule.every().day.at('00:00').do(util.update_moex)
+	schedule.every().day.at('20:00').do(util.update_moex)
 	while True:
 		schedule.run_pending()
 		time.sleep(1)
