@@ -863,6 +863,20 @@ def get_portfolio(uid):
 		connection.close()
 
 
+def get_portfolio_amount(uid):
+	"""
+	Получить накопленную прибыль/убыток
+	"""
+	data = get_portfolio(uid)
+	print(data)
+	amount = 0
+	for x in data['stocks']:
+		amount += x['price_difference']
+	for x in data['bonds']:
+		amount += x['price_difference']
+	return int(amount)
+
+
 def get_account_state(uid):
 	"""
 	Получить состояние счета пользователя
@@ -954,7 +968,7 @@ def get_account_state(uid):
 				amount += float(x['amount'])
 				money_amount += float(x['amount'])
 		connection.commit()
-		broker_amount += amount
+		broker_amount += get_portfolio_amount(uid)
 		return {
 			'amount': amount,
 			'money_amount': money_amount,
@@ -962,20 +976,6 @@ def get_account_state(uid):
 		}
 	finally:
 		connection.close()
-
-
-def get_portfolio_amount(uid):
-	"""
-	Получить накопленную прибыль/убыток
-	"""
-	data = get_portfolio(uid)
-	print(data)
-	amount = 0
-	for x in data['stocks']:
-		amount += x['price_difference']
-	for x in data['bonds']:
-		amount += x['price_difference']
-	return int(amount)
 
 
 # print(get_account_state(217166737))
