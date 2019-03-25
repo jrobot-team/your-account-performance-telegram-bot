@@ -158,7 +158,7 @@ def text_handler(message):
 		account = util.get_account_state(uid)
 		portfolio_amount = util.get_portfolio_amount(uid)
 		text = 'На брокерских счетах {!s} ₽, в т.ч. денежных средств {!s} ₽. Накопленная прибыль/убыток {!s} ₽'.format(
-			int(account['amount']), int(account['money_amount']), portfolio_amount)
+			int(account['broker_amount']), int(account['amount']), portfolio_amount)
 		bot.send_message(cid, text)
 		text = 'Обработка данных...'
 		msg = bot.send_message(cid, text)

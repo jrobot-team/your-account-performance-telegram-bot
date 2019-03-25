@@ -971,13 +971,13 @@ def get_portfolio_amount(uid):
 	print(data)
 	amount = 0
 	for x in data['stocks']:
-		amount += x['current_price']
+		amount += x['price_difference']
 	for x in data['bonds']:
-		amount += x['current_price']
+		amount += x['price_difference']
 	return int(amount)
 
 
-# print(get_account_state(217166737))
+print(get_account_state(217166737))
 # print(get_portfolio(217166737))
 # print(get_timestamp('21.03.3000'))
 # print(Moex.get_stock_price('SBER'))
