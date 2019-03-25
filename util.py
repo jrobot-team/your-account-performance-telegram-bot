@@ -720,7 +720,6 @@ def get_portfolio(uid):
 			sql = 'SELECT DISTINCT ticker FROM salestock WHERE uid=%s'
 			cursor.execute(sql, (uid,))
 			tickers_sale = cursor.fetchall()
-			print(tickers_buy, tickers_sale)
 			tickers = []
 			for x in tickers_buy:
 				if x['ticker'] not in tickers:
@@ -743,10 +742,8 @@ def get_portfolio(uid):
 				sale_count = 0
 				for x in res2:
 					sale_count += x['count']
-				print(buy_count, sale_count)
 				# Количество акций по тикеру
 				count = buy_count - sale_count
-				print(count)
 				if count == 0:
 					continue
 
@@ -756,10 +753,8 @@ def get_portfolio(uid):
 				for x in res2:
 					amount -= float(x['price']) * int(x['count'])
 				# Сумма всех цен операций покупки
-				print(amount)
 				# Средняя стоимость
 				average_price = amount / count
-				print(average_price)
 
 				# Текущая стоимость
 				if len(res1) == 0:
@@ -767,11 +762,8 @@ def get_portfolio(uid):
 				else:
 					api_price = res1[0]['api_price']
 				current_price = float(api_price) * count
-				print(current_price)
 				# Разница стоимости
 				price_difference = current_price - average_price * count
-				print(price_difference)
-				print('\n')
 				result['stocks'].append({
 					'ticker': ticker,
 					'count': count,
@@ -788,7 +780,6 @@ def get_portfolio(uid):
 			sql = 'SELECT DISTINCT ticker FROM salebond WHERE uid=%s'
 			cursor.execute(sql, (uid,))
 			tickers_sale = cursor.fetchall()
-			print(tickers_buy, tickers_sale)
 			tickers = []
 			for x in tickers_buy:
 				if x['ticker'] not in tickers:
@@ -811,10 +802,8 @@ def get_portfolio(uid):
 				sale_count = 0
 				for x in res2:
 					sale_count += x['count']
-				print(buy_count, sale_count)
 				# Количество облигаций по тикеру
 				count = buy_count - sale_count
-				print(count)
 				if count == 0:
 					continue
 
@@ -824,10 +813,8 @@ def get_portfolio(uid):
 				for x in res2:
 					amount -= (float(x['price']) + float(x['nkd'])) * int(x['count'])
 				# Сумма всех цен операций покупки
-				print(amount)
 				# Средняя стоимость
 				average_price = amount / count
-				print(average_price)
 
 				# Текущая стоимость
 				if len(res1) == 0:
@@ -843,12 +830,9 @@ def get_portfolio(uid):
 					api_ACCINT = res1[0]['api_ACCINT']
 				# current_price = (float(api_price) + float(api_nkd)) * count
 				current_price = (float(api_price) * float(api_FACEVALUE) / 100 + float(api_ACCINT)) * count
-				print(current_price)
 				# Разница стоимости
 				price_difference = current_price - average_price * count
 				# price_difference = (average_price - current_price) * count
-				print(price_difference)
-				print('\n')
 				result['bonds'].append({
 					'ticker': ticker,
 					'count': count,
@@ -968,7 +952,7 @@ def get_account_state(uid):
 				amount += float(x['amount'])
 				money_amount += float(x['amount'])
 		connection.commit()
-		broker_amount += get_portfolio_amount(uid)
+		broker_amount -= get_portfolio_amount(uid)
 		return {
 			'amount': amount,
 			'money_amount': money_amount,
