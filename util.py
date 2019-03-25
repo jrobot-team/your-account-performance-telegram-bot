@@ -954,6 +954,7 @@ def get_account_state(uid):
 				amount += float(x['amount'])
 				money_amount += float(x['amount'])
 		connection.commit()
+		broker_amount += amount
 		return {
 			'amount': amount,
 			'money_amount': money_amount,
