@@ -977,7 +977,7 @@ def get_portfolio_amount(uid):
 	return int(amount)
 
 
-print(get_account_state(217166737))
+# print(get_account_state(217166737))
 # print(get_portfolio(217166737))
 # print(get_timestamp('21.03.3000'))
 # print(Moex.get_stock_price('SBER'))
