@@ -952,7 +952,15 @@ def get_account_state(uid):
 				amount += float(x['amount'])
 				money_amount += float(x['amount'])
 		connection.commit()
-		broker_amount -= get_portfolio_amount(uid)
+		data1 = get_portfolio(uid)
+		print(data1)
+		amount1 = 0
+		for x in data1['stocks']:
+			amount1 += x['current_price']
+		for x in data1['bonds']:
+			amount1 += x['current_price']
+		broker_amount = int(amount1) + int(amount)
+		amount = int(amount)
 		return {
 			'amount': amount,
 			'money_amount': money_amount,
