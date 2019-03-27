@@ -910,16 +910,14 @@ def get_account_state(uid):
 			cursor.execute(sql, (uid,))
 			res = cursor.fetchall()
 			for x in res:
-				amount -= float(x['price']) * int(x['count'])
-				amount -= float(x['nkd'])
+				amount -= (float(x['price']) + float(x['nkd'])) * int(x['count'])
 				broker_amount += (float(x['price']) + float(x['nkd'])) * int(x['count'])
 			# Высчитать продажу облигаций
 			sql = 'SELECT * FROM salebond WHERE uid=%s'
 			cursor.execute(sql, (uid,))
 			res = cursor.fetchall()
 			for x in res:
-				amount += float(x['price']) * int(x['count']) 
-				amount += float(x['nkd'])
+				amount += (float(x['price']) + float(x['nkd'])) * int(x['count'])
 				broker_amount -= (float(x['price']) + float(x['nkd'])) * int(x['count'])
 			# Высчитать удержание налога
 			sql = 'SELECT * FROM taxes WHERE uid=%s'
