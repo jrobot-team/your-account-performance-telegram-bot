@@ -293,6 +293,10 @@ def text_handler(message):
 			text = 'Укажите тикер'
 			return bot.send_message(cid, text)
 		if 'ticker' not in READY_TO_salestock[uid]:
+			api_price = util.Moex.get_stock_price(message.text)
+			if not api_price:
+				text = 'Такого тикера не существует'
+				return bot.send_message(cid, text)
 			READY_TO_salestock[uid]['ticker'] = message.text.upper()
 			text = 'Укажите количество акций'
 			return bot.send_message(cid, text)
@@ -420,6 +424,10 @@ def text_handler(message):
 			text = 'Укажите тикер'
 			return bot.send_message(cid, text)
 		if 'ticker' not in READY_TO_salebond[uid]:
+			data = util.Moex.get_bond_data(message.text)
+			if not data:
+				text = 'Такого тикера не существует'
+				return bot.send_message(cid, text)
 			READY_TO_salebond[uid]['ticker'] = message.text.upper()
 			text = 'Укажите количество облигаций'
 			return bot.send_message(cid, text)
