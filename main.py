@@ -27,6 +27,32 @@ READY_TO_couponincome = {}
 READY_TO_DIVIDENDS = {}
 
 
+def clear_actions(uid):
+	"""
+	Очитсть действия пользователя
+	"""
+	if uid in READY_TO_ADD_AMOUNT:
+		del READY_TO_ADD_AMOUNT[uid]
+	if uid in READY_TO_MINUS_ACCOUNT:
+		del READY_TO_MINUS_ACCOUNT[uid]
+	if uid in READY_TO_buystock:
+		del READY_TO_buystock[uid]
+	if uid in READY_TO_salestock:
+		del READY_TO_salestock[uid]
+	if uid in READY_TO_buybond:
+		del READY_TO_buybond[uid]
+	if uid in READY_TO_salebond:
+		del READY_TO_salebond[uid]
+	if uid in READY_TO_TAX:
+		del READY_TO_TAX[uid]
+	if uid in READY_TO_COMISSION:
+		del READY_TO_COMISSION[uid]
+	if uid in READY_TO_couponincome:
+		del READY_TO_couponincome[uid]
+	if uid in READY_TO_DIVIDENDS:
+		del READY_TO_DIVIDENDS[uid]
+
+
 @bot.message_handler(commands=['start'])
 def start_message_handler(message):
 	cid = message.chat.id
@@ -761,51 +787,61 @@ def callback_inline(call):
 
 	# Обработать кнопки выбора операции
 	if call.data == 'add_amount':
+		clear_actions(uid)
 		bot.delete_message(cid, call.message.message_id)
 		READY_TO_ADD_AMOUNT[uid] = {}
 		text = 'Введите дату операции\nФормат: ДД.ММ.ГГГГ'
 		return bot.send_message(cid, text)
 	elif call.data == 'minus_amount':
+		clear_actions(uid)
 		bot.delete_message(cid, call.message.message_id)
 		READY_TO_MINUS_ACCOUNT[uid] = {}
 		text = 'Введите дату операции\nФормат: ДД.ММ.ГГГГ'
 		return bot.send_message(cid, text)
 	elif call.data == 'add_aczii':
+		clear_actions(uid)
 		bot.delete_message(cid, call.message.message_id)
 		READY_TO_buystock[uid] = {}
 		text = 'Введите дату операции\nФормат: ДД.ММ.ГГГГ'
 		return bot.send_message(cid, text)
 	elif call.data == 'delete_aczii':
+		clear_actions(uid)
 		bot.delete_message(cid, call.message.message_id)
 		READY_TO_salestock[uid] = {}
 		text = 'Введите дату операции\nФормат: ДД.ММ.ГГГГ'
 		return bot.send_message(cid, text)
 	elif call.data == 'add_oblig':
+		clear_actions(uid)
 		bot.delete_message(cid, call.message.message_id)
 		READY_TO_buybond[uid] = {}
 		text = 'Введите дату операции\nФормат: ДД.ММ.ГГГГ'
 		return bot.send_message(cid, text)
 	elif call.data == 'delete_oblig':
+		clear_actions(uid)
 		bot.delete_message(cid, call.message.message_id)
 		READY_TO_salebond[uid] = {}
 		text = 'Введите дату операции\nФормат: ДД.ММ.ГГГГ'
 		return bot.send_message(cid, text)
 	elif call.data == 'pay_nalog':
+		clear_actions(uid)
 		bot.delete_message(cid, call.message.message_id)
 		READY_TO_TAX[uid] = {}
 		text = 'Введите дату операции\nФормат: ДД.ММ.ГГГГ'
 		return bot.send_message(cid, text)
 	elif call.data == 'pay_comission':
+		clear_actions(uid)
 		bot.delete_message(cid, call.message.message_id)
 		READY_TO_COMISSION[uid] = {}
 		text = 'Введите дату операции\nФормат: ДД.ММ.ГГГГ'
 		return bot.send_message(cid, text)
 	if call.data == 'get_cupon':
+		clear_actions(uid)
 		bot.delete_message(cid, call.message.message_id)
 		READY_TO_couponincome[uid] = {}
 		text = 'Введите дату операции\nФормат: ДД.ММ.ГГГГ'
 		return bot.send_message(cid, text)
 	if call.data == 'get_dividends':
+		clear_actions(uid)
 		bot.delete_message(cid, call.message.message_id)
 		READY_TO_DIVIDENDS[uid] = {}
 		text = 'Введите дату операции\nФормат: ДД.ММ.ГГГГ'
