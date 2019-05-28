@@ -993,7 +993,7 @@ def callback_inline(call):
 			text += '*{!s}*\nВ портфеле {!s} шт.\nСред. цена {!s} ₽\n'.format(
 				x['ticker'], x['count'], util.standart_int(x['average_price']))
 			text += 'Цена закрытия {!s} %\nСтоимость {!s} ₽\nПрибыль/убыток {!s} ₽\n\n'.format(
-				x['close_price'], util.standart_int(x['current_price']), util.standart_int(x['price_difference']))
+				util.standart_int(x['close_price']), util.standart_int(x['current_price']), util.standart_int(x['price_difference']))
 		if len(text) == 0:
 			text = 'Вы ещё не совершали ни одной операции'
 		keyboard = types.InlineKeyboardMarkup()
