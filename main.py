@@ -60,10 +60,25 @@ def clear_actions(uid):
 def start_message_handler(message):
 	cid = message.chat.id
 	uid = message.from_user.id
-	text = 'Главное меню'
-	markup = types.ReplyKeyboardMarkup(one_time_keyboard=False, resize_keyboard=True, row_width=1)
-	for x in config.main_markup:
-		markup.row(*x)
+	text = 'Главное меню. Выберите действие'
+	keyboard = types.InlineKeyboardMarkup()
+	keyboard.add(
+		types.InlineKeyboardButton(text='Портфель', callback_data='portfel'),
+		types.InlineKeyboardButton(text='Добавить', callback_data='dobavit')
+	)
+	keyboard.add(
+		types.InlineKeyboardButton(text='Справка', callback_data='spravka'),
+		types.InlineKeyboardButton(text='Контакты', callback_data='kontakti')
+	)
+	return bot.send_message(cid, text, reply_markup=keyboard)
+
+
+@bot.message_handler(commands=['remove'])
+def remove_message_handler(message):
+	cid = message.chat.id
+	uid = message.from_user.id
+	text = 'Нижнее меню удалено'
+	markup = types.ReplyKeyboardRemove()
 	return bot.send_message(cid, text, reply_markup=markup)
 
 
@@ -141,40 +156,6 @@ def text_handler(message):
 		keyboard.add(types.InlineKeyboardButton(text='Отмена', callback_data='cancelldelete'))
 		return bot.send_message(cid, text, reply_markup=keyboard)
 
-	# Обработать главное меню
-	if message.text == 'Добавить операцию':
-		text = 'Выберите тип операции'
-		keyboard = types.InlineKeyboardMarkup()
-		for x in config.operations_markup:
-			keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
-		return bot.send_message(cid, text, reply_markup=keyboard)
-	elif message.text == 'Портфель':
-		account = util.get_account_state(uid)
-		portfolio_amount = util.get_portfolio_amount(uid)
-		text = 'На брокерских счетах {!s} ₽, в т.ч. денежных средств {!s} ₽. Накопленная прибыль/убыток {!s} ₽'.format(
-			int(account['broker_amount']), int(account['amount']), portfolio_amount)
-		bot.send_message(cid, text)
-		text = 'Обработка данных...'
-		msg = bot.send_message(cid, text)
-		text = ''
-		portfolio = util.get_portfolio(uid)
-		for x in portfolio['stocks']:
-			text += '*{!s}*\nВ портфеле {!s} шт.\nСред. цена {!s} ₽\n'.format(
-				x['ticker'], x['count'], int(x['average_price']))
-			text += 'Цена закрытия {!s} ₽\nСтоимость {!s} ₽\nПрибыль/убыток {!s} ₽\n\n'.format(
-				int(x['close_price']), int(x['current_price']), int(x['price_difference']))
-		for x in portfolio['bonds']:
-			text += '*{!s}*\nВ портфеле {!s} шт.\nСред. цена {!s} ₽\n'.format(
-				x['ticker'], x['count'], int(x['average_price']))
-			text += 'Цена закрытия {!s} %\nСтоимость {!s} ₽\nПрибыль/убыток {!s} ₽\n\n'.format(
-				x['close_price'], int(x['current_price']), int(x['price_difference']))
-		if len(text) == 0:
-			text = 'Вы ещё не совершали ни одной операции'
-		keyboard = types.InlineKeyboardMarkup()
-		for x in config.schet_markup:
-			keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
-		return bot.edit_message_text(text, chat_id=msg.chat.id, message_id=msg.message_id, reply_markup=keyboard, parse_mode='MARKDOWN')
-
 	# Обработать состояние добавления средств
 	if uid in READY_TO_ADD_AMOUNT:
 		if 'input_date' not in READY_TO_ADD_AMOUNT[uid]:
@@ -228,7 +209,11 @@ def text_handler(message):
 			text = 'Выберите тип операции'
 			keyboard = types.InlineKeyboardMarkup()
 			for x in config.operations_markup:
-				keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
+				keyboard.row(
+					types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']),
+					types.InlineKeyboardButton(text=x[1]['text'], callback_data=x[1]['callback'])
+				)
+			keyboard.add(types.InlineKeyboardButton(text='В главное меню', callback_data='returnmainmenu'))
 			return bot.send_message(cid, text, reply_markup=keyboard)
 	
 	# Обработать состояние вывода средств
@@ -284,7 +269,11 @@ def text_handler(message):
 			text = 'Выберите тип операции'
 			keyboard = types.InlineKeyboardMarkup()
 			for x in config.operations_markup:
-				keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
+				keyboard.row(
+					types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']),
+					types.InlineKeyboardButton(text=x[1]['text'], callback_data=x[1]['callback'])
+				)
+			keyboard.add(types.InlineKeyboardButton(text='В главное меню', callback_data='returnmainmenu'))
 			return bot.send_message(cid, text, reply_markup=keyboard)
 
 	# Обработать покупку акции
@@ -373,7 +362,11 @@ def text_handler(message):
 			text = 'Выберите тип операции'
 			keyboard = types.InlineKeyboardMarkup()
 			for x in config.operations_markup:
-				keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
+				keyboard.row(
+					types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']),
+					types.InlineKeyboardButton(text=x[1]['text'], callback_data=x[1]['callback'])
+				)
+			keyboard.add(types.InlineKeyboardButton(text='В главное меню', callback_data='returnmainmenu'))
 			return bot.send_message(cid, text, reply_markup=keyboard)
 
 	# Обработать продажу акции
@@ -460,7 +453,11 @@ def text_handler(message):
 			text = 'Выберите тип операции'
 			keyboard = types.InlineKeyboardMarkup()
 			for x in config.operations_markup:
-				keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
+				keyboard.row(
+					types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']),
+					types.InlineKeyboardButton(text=x[1]['text'], callback_data=x[1]['callback'])
+				)
+			keyboard.add(types.InlineKeyboardButton(text='В главное меню', callback_data='returnmainmenu'))
 			return bot.send_message(cid, text, reply_markup=keyboard)
 
 	# Обработать покупку облигации
@@ -572,7 +569,11 @@ def text_handler(message):
 			text = 'Выберите тип операции'
 			keyboard = types.InlineKeyboardMarkup()
 			for x in config.operations_markup:
-				keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
+				keyboard.row(
+					types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']),
+					types.InlineKeyboardButton(text=x[1]['text'], callback_data=x[1]['callback'])
+				)
+			keyboard.add(types.InlineKeyboardButton(text='В главное меню', callback_data='returnmainmenu'))
 			return bot.send_message(cid, text, reply_markup=keyboard)
 	
 	# Обработать продажу облигации
@@ -676,7 +677,11 @@ def text_handler(message):
 			text = 'Выберите тип операции'
 			keyboard = types.InlineKeyboardMarkup()
 			for x in config.operations_markup:
-				keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
+				keyboard.row(
+					types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']),
+					types.InlineKeyboardButton(text=x[1]['text'], callback_data=x[1]['callback'])
+				)
+			keyboard.add(types.InlineKeyboardButton(text='В главное меню', callback_data='returnmainmenu'))
 			return bot.send_message(cid, text, reply_markup=keyboard)
 
 	# Обработать сотояние удержания налога
@@ -732,7 +737,11 @@ def text_handler(message):
 			text = 'Выберите тип операции'
 			keyboard = types.InlineKeyboardMarkup()
 			for x in config.operations_markup:
-				keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
+				keyboard.row(
+					types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']),
+					types.InlineKeyboardButton(text=x[1]['text'], callback_data=x[1]['callback'])
+				)
+			keyboard.add(types.InlineKeyboardButton(text='В главное меню', callback_data='returnmainmenu'))
 			return bot.send_message(cid, text, reply_markup=keyboard)
 	
 	# Обработать сотояние удержания комиссии
@@ -788,7 +797,11 @@ def text_handler(message):
 			text = 'Выберите тип операции'
 			keyboard = types.InlineKeyboardMarkup()
 			for x in config.operations_markup:
-				keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
+				keyboard.row(
+					types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']),
+					types.InlineKeyboardButton(text=x[1]['text'], callback_data=x[1]['callback'])
+				)
+			keyboard.add(types.InlineKeyboardButton(text='В главное меню', callback_data='returnmainmenu'))
 			return bot.send_message(cid, text, reply_markup=keyboard)
 
 	# Обработать сотояние добавления купонного дохода
@@ -855,7 +868,11 @@ def text_handler(message):
 			text = 'Выберите тип операции'
 			keyboard = types.InlineKeyboardMarkup()
 			for x in config.operations_markup:
-				keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
+				keyboard.row(
+					types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']),
+					types.InlineKeyboardButton(text=x[1]['text'], callback_data=x[1]['callback'])
+				)
+			keyboard.add(types.InlineKeyboardButton(text='В главное меню', callback_data='returnmainmenu'))
 			return bot.send_message(cid, text, reply_markup=keyboard)
 
 	# Обработать сотояние добавления купонного дохода
@@ -922,7 +939,11 @@ def text_handler(message):
 			text = 'Выберите тип операции'
 			keyboard = types.InlineKeyboardMarkup()
 			for x in config.operations_markup:
-				keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
+				keyboard.row(
+					types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']),
+					types.InlineKeyboardButton(text=x[1]['text'], callback_data=x[1]['callback'])
+				)
+			keyboard.add(types.InlineKeyboardButton(text='В главное меню', callback_data='returnmainmenu'))
 			return bot.send_message(cid, text, reply_markup=keyboard)
 
 
@@ -937,6 +958,69 @@ def callback_inline(call):
 		bot.answer_callback_query(call.id, 'Выполнено')
 	except Exception as e:
 		print(e)
+
+	# Обработать возвращение в главное меню
+	if call.data == 'returnmainmenu':
+		text = 'Главное меню. Выберите действие'
+		keyboard = types.InlineKeyboardMarkup()
+		keyboard.add(
+			types.InlineKeyboardButton(text='Портфель', callback_data='portfel'),
+			types.InlineKeyboardButton(text='Добавить', callback_data='dobavit')
+		)
+		keyboard.add(
+			types.InlineKeyboardButton(text='Справка', callback_data='spravka'),
+			types.InlineKeyboardButton(text='Контакты', callback_data='kontakti')
+		)
+		return bot.edit_message_text(text, chat_id=cid, message_id=call.message.message_id, reply_markup=keyboard)
+
+	# Обработать главное меню
+	if call.data == 'portfel':
+		account = util.get_account_state(uid)
+		portfolio_amount = util.get_portfolio_amount(uid)
+		text = 'На брокерских счетах {!s} ₽, в т.ч. денежных средств {!s} ₽. Накопленная прибыль/убыток {!s} ₽'.format(
+			int(account['broker_amount']), int(account['amount']), portfolio_amount)
+		bot.send_message(cid, text)
+		text = 'Обработка данных...'
+		msg = bot.send_message(cid, text)
+		text = ''
+		portfolio = util.get_portfolio(uid)
+		for x in portfolio['stocks']:
+			text += '*{!s}*\nВ портфеле {!s} шт.\nСред. цена {!s} ₽\n'.format(
+				x['ticker'], x['count'], int(x['average_price']))
+			text += 'Цена закрытия {!s} ₽\nСтоимость {!s} ₽\nПрибыль/убыток {!s} ₽\n\n'.format(
+				int(x['close_price']), int(x['current_price']), int(x['price_difference']))
+		for x in portfolio['bonds']:
+			text += '*{!s}*\nВ портфеле {!s} шт.\nСред. цена {!s} ₽\n'.format(
+				x['ticker'], x['count'], int(x['average_price']))
+			text += 'Цена закрытия {!s} %\nСтоимость {!s} ₽\nПрибыль/убыток {!s} ₽\n\n'.format(
+				x['close_price'], int(x['current_price']), int(x['price_difference']))
+		if len(text) == 0:
+			text = 'Вы ещё не совершали ни одной операции'
+		keyboard = types.InlineKeyboardMarkup()
+		for x in config.schet_markup:
+			keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
+		keyboard.add(types.InlineKeyboardButton(text='В главное меню', callback_data='returnmainmenu'))
+		return bot.edit_message_text(text, chat_id=msg.chat.id, message_id=msg.message_id, reply_markup=keyboard, parse_mode='MARKDOWN')
+	elif call.data == 'dobavit':
+		text = 'Выберите тип операции'
+		keyboard = types.InlineKeyboardMarkup()
+		for x in config.operations_markup:
+			keyboard.row(
+				types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']),
+				types.InlineKeyboardButton(text=x[1]['text'], callback_data=x[1]['callback'])
+			)
+		keyboard.add(types.InlineKeyboardButton(text='В главное меню', callback_data='returnmainmenu'))
+		return bot.send_message(cid, text, reply_markup=keyboard)
+	elif call.data == 'spravka':
+		text = 'Добавить текст позже'
+		keyboard = types.InlineKeyboardMarkup()
+		keyboard.add(types.InlineKeyboardButton(text='В главное меню', callback_data='returnmainmenu'))
+		return bot.edit_message_text(text, chat_id=cid, message_id=call.message.message_id, reply_markup=keyboard)
+	elif call.data == 'kontakti':
+		text = 'Добавить текст позже'
+		keyboard = types.InlineKeyboardMarkup()
+		keyboard.add(types.InlineKeyboardButton(text='В главное меню', callback_data='returnmainmenu'))
+		return bot.edit_message_text(text, chat_id=cid, message_id=call.message.message_id, reply_markup=keyboard)
 
 	# Обработать истории операций
 	if call.data.startswith('history'):
@@ -1044,6 +1128,7 @@ def callback_inline(call):
 		keyboard = types.InlineKeyboardMarkup()
 		for x in config.schet_markup:
 			keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
+		keyboard.add(types.InlineKeyboardButton(text='В главное меню', callback_data='returnmainmenu'))
 		return bot.send_message(cid, text, reply_markup=keyboard)
 	
 	if call.data == 'cancelldelete':

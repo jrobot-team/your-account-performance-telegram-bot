@@ -10,22 +10,12 @@ db_password='123456'
 db_database='account_performance'
 db_charset = 'utf8'
 
-main_markup = [
-	['Добавить операцию'],
-	['Портфель'],
-]
-
 operations_markup = [
-	[{'text': 'Пополнение счета', 'callback': 'add_amount'}],
-	[{'text': 'Вывод средств', 'callback': 'minus_amount'}],
-	[{'text': 'Покупка акций', 'callback': 'add_aczii'}],
-	[{'text': 'Продажа акций', 'callback': 'delete_aczii'}],
-	[{'text': 'Покупка облигаций', 'callback': 'add_oblig'}],
-	[{'text': 'Продажа облигаций', 'callback': 'delete_oblig'}],
-	[{'text': 'Удержание налога', 'callback': 'pay_nalog'}],
-	[{'text': 'Удержание комиссии', 'callback': 'pay_comission'}],
-	[{'text': 'Зачисление купонного дохода', 'callback': 'get_cupon'}],
-	[{'text': 'Зачисление дивидендов', 'callback': 'get_dividends'}],
+	[{'text': 'Пополнение счета', 'callback': 'add_amount'}, {'text': 'Вывод средств', 'callback': 'minus_amount'}],
+	[{'text': 'Покупка акций', 'callback': 'add_aczii'}, {'text': 'Продажа акций', 'callback': 'delete_aczii'}],
+	[{'text': 'Покупка облигаций', 'callback': 'add_oblig'}, {'text': 'Продажа облигаций', 'callback': 'delete_oblig'}],
+	[{'text': 'Налог', 'callback': 'pay_nalog'}, {'text': 'Комиссия', 'callback': 'pay_comission'}],
+	[{'text': 'Купонный доход', 'callback': 'get_cupon'}, {'text': 'Дивиденды', 'callback': 'get_dividends'}],
 ]
 
 '''
