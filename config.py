@@ -18,14 +18,11 @@ operations_markup = [
 	[{'text': 'Купонный доход', 'callback': 'get_cupon'}, {'text': 'Дивиденды', 'callback': 'get_dividends'}],
 ]
 
-'''
-brokers = {
-	'0': 'БКС',
-	'1': 'Тинькофф',
-	'2': 'Сбербанк',
-}
-'''
+schet_markup = [
+	[{'text': 'История операций', 'callback': 'history_papers'}],
+]
 
+'''
 schet_markup = [
 	[{'text': 'История операций с ценными бумагами', 'callback': 'history_papers'}],
 	[{'text': 'История операций с деньгами', 'callback': 'history_money'}],
@@ -38,6 +35,13 @@ papers_history_markup = [
 ]
 
 money_history_markup = [
+	[{'text': 'За предыдущий месяц', 'callback': 'history_money_lastmonth'}],
+	[{'text': 'За три месяца', 'callback': 'history_money_threemonths'}],
+	[{'text': 'Все', 'callback': 'history_money_allmonths'}],
+]
+'''
+
+history_markup = [
 	[{'text': 'За предыдущий месяц', 'callback': 'history_money_lastmonth'}],
 	[{'text': 'За три месяца', 'callback': 'history_money_threemonths'}],
 	[{'text': 'Все', 'callback': 'history_money_allmonths'}],

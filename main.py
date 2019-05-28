@@ -1067,8 +1067,10 @@ def callback_inline(call):
 
 		text = ''
 		for x in operations:
+			'''
 			if x['table'] not in available_tables:
 				continue
+			'''
 			_date = datetime.datetime.utcfromtimestamp(int(x['input_date'])).strftime('%d.%m.%Y')
 			text += 'Операция: {!s}\nДата: {!s}\n'.format(x['title'], _date)
 
@@ -1107,12 +1109,17 @@ def callback_inline(call):
 		if len(text) > 0:
 			bot.send_message(cid, text)
 
+		'''
 		if time_data[1] == 'papers':
 			mk = config.papers_history_markup
 			text = 'Вы можете посмотреть операции c ценными бумагами за другой промежуток времени'
 		if time_data[1] == 'money':
 			mk = config.money_history_markup
 			text = 'Вы можете посмотреть операции c деньгами за другой промежуток времени'
+		'''
+
+		mk = config.history_markup
+		text = 'Вы можете посмотреть операции за другой промежуток времени'
 		keyboard = types.InlineKeyboardMarkup()
 		for x in mk:
 			keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
