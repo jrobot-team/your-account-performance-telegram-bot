@@ -976,9 +976,9 @@ def callback_inline(call):
 	# Обработать главное меню
 	if call.data == 'portfel':
 		account = util.get_account_state(uid)
-		portfolio_amount = util.get_portfolio_amount(uid)
+		portfolio_amount = util.standart_int(util.get_portfolio_amount(uid))
 		text = 'На брокерских счетах {!s} ₽, в т.ч. денежных средств {!s} ₽. Накопленная прибыль/убыток {!s} ₽'.format(
-			int(account['broker_amount']), int(account['amount']), portfolio_amount)
+			util.standart_int(account['broker_amount']), util.standart_int(account['amount']), portfolio_amount)
 		bot.send_message(cid, text)
 		text = 'Обработка данных...'
 		msg = bot.send_message(cid, text)
@@ -986,14 +986,14 @@ def callback_inline(call):
 		portfolio = util.get_portfolio(uid)
 		for x in portfolio['stocks']:
 			text += '*{!s}*\nВ портфеле {!s} шт.\nСред. цена {!s} ₽\n'.format(
-				x['ticker'], x['count'], int(x['average_price']))
+				x['ticker'], x['count'], util.standart_int(x['average_price']))
 			text += 'Цена закрытия {!s} ₽\nСтоимость {!s} ₽\nПрибыль/убыток {!s} ₽\n\n'.format(
-				int(x['close_price']), int(x['current_price']), int(x['price_difference']))
+				util.standart_int(x['close_price']), util.standart_int(x['current_price']), util.standart_int(x['price_difference']))
 		for x in portfolio['bonds']:
 			text += '*{!s}*\nВ портфеле {!s} шт.\nСред. цена {!s} ₽\n'.format(
-				x['ticker'], x['count'], int(x['average_price']))
+				x['ticker'], x['count'], util.standart_int(x['average_price']))
 			text += 'Цена закрытия {!s} %\nСтоимость {!s} ₽\nПрибыль/убыток {!s} ₽\n\n'.format(
-				x['close_price'], int(x['current_price']), int(x['price_difference']))
+				x['close_price'], util.standart_int(x['current_price']), util.standart_int(x['price_difference']))
 		if len(text) == 0:
 			text = 'Вы ещё не совершали ни одной операции'
 		keyboard = types.InlineKeyboardMarkup()
@@ -1075,31 +1075,31 @@ def callback_inline(call):
 			text += 'Операция: {!s}\nДата: {!s}\n'.format(x['title'], _date)
 
 			if x['table'] == 'accountamount':
-				text += 'Сумма: {!s}\nБрокер: {!s}'.format(x['amount'], x['broker'])
+				text += 'Сумма: {!s}\nБрокер: {!s}'.format(util.standart_int(float(x['amount'])), x['broker'])
 			if x['table'] == 'accountminusamount':
-				text += 'Сумма: {!s}\nБрокер: {!s}'.format(x['amount'], x['broker'])
+				text += 'Сумма: {!s}\nБрокер: {!s}'.format(util.standart_int(float(x['amount'])), x['broker'])
 			if x['table'] == 'buystock':
 				text += 'Тикер: {!s}\nКоличество: {!s}\nЦена: {!s}\nБрокер: {!s}'.format(
-					x['ticker'], x['count'], x['price'], x['broker'])
+					x['ticker'], x['count'], util.standart_int(float(x['price'])), x['broker'])
 			if x['table'] == 'salestock':
 				text += 'Тикер: {!s}\nКоличество: {!s}\nЦена: {!s}\nБрокер: {!s}'.format(
-					x['ticker'], x['count'], x['price'], x['broker'])
+					x['ticker'], x['count'], util.standart_int(float(x['price'])), x['broker'])
 			if x['table'] == 'buybond':
 				text += 'Тикер: {!s}\nКоличество: {!s}\nНКД: {!s}\nЦена: {!s}\nБрокер: {!s}'.format(
-					x['ticker'], x['count'], x['nkd'], x['price'], x['broker'])
+					x['ticker'], x['count'], util.standart_int(float(x['nkd'])), util.standart_int(float(x['price'])), x['broker'])
 			if x['table'] == 'salebond':
 				text += 'Тикер: {!s}\nКоличество: {!s}\nНКД: {!s}\nЦена: {!s}\nБрокер: {!s}'.format(
-					x['ticker'], x['count'], x['nkd'], x['price'], x['broker'])
+					x['ticker'], x['count'], util.standart_int(float(x['nkd'])), util.standart_int(float(x['price'])), x['broker'])
 			if x['table'] == 'taxes':
-				text += 'Сумма: {!s}\nБрокер: {!s}'.format(x['amount'], x['broker'])
+				text += 'Сумма: {!s}\nБрокер: {!s}'.format(util.standart_int(float(x['amount'])), x['broker'])
 			if x['table'] == 'comissions':
-				text += 'Сумма: {!s}\nБрокер: {!s}'.format(x['amount'], x['broker'])
+				text += 'Сумма: {!s}\nБрокер: {!s}'.format(util.standart_int(float(x['amount'])), x['broker'])
 			if x['table'] == 'couponincome':
 				text += 'Тикер: {!s}\nСумма: {!s}\nБрокер: {!s}'.format(
-					x['bond'], x['amount'], x['broker'])
+					x['bond'], util.standart_int(float(x['amount'])), x['broker'])
 			if x['table'] == 'dividends':
 				text += 'Тикер: {!s}\nСумма: {!s}\nБрокер: {!s}'.format(
-					x['dividend'], x['amount'], x['broker'])
+					x['dividend'], util.standart_int(float(x['amount'])), x['broker'])
 			text += '\nДля удаления операции нажмите на ссылку /del_{!s}_{!s}\n\n'.format(x['table'], x['id'])
 			
 			if len(text) > 3500:

@@ -550,7 +550,7 @@ class Moex:
 			print(url)
 			res = requests.get(url)
 			price = res.json()['history']['data'][-1][9]
-			return float('{0: >#016.2f}'.format(float(price)).strip())
+			return float('{0: >#016.4f}'.format(float(price)).strip())
 		except Exception as e:
 			print(e)
 			return None
@@ -572,7 +572,7 @@ class Moex:
 			res = requests.get(url)
 			print(url)
 			price = res.json()['history']['data'][-1][9]
-			return float('{0: >#016.2f}'.format(float(price)).strip())
+			return float('{0: >#016.4f}'.format(float(price)).strip())
 		except Exception as e:
 			print(e)
 			return None
@@ -594,7 +594,7 @@ class Moex:
 			res = requests.get(url)
 			print(url)
 			nkd = res.json()['history']['data'][-1][27]
-			return float('{0: >#016.2f}'.format(float(nkd)).strip())
+			return float('{0: >#016.4f}'.format(float(nkd)).strip())
 		except Exception as e:
 			print(e)
 			return None
@@ -620,10 +620,10 @@ class Moex:
 			FACEVALUE = res.json()['history']['data'][-1][30]
 			ACCINT = res.json()['history']['data'][-1][10]
 
-			price = float('{0: >#016.2f}'.format(float(price)).strip())
-			nkd = float('{0: >#016.2f}'.format(float(nkd)).strip())
-			FACEVALUE = float('{0: >#016.2f}'.format(float(FACEVALUE)).strip())
-			ACCINT = float('{0: >#016.2f}'.format(float(ACCINT)).strip())
+			price = float('{0: >#016.4f}'.format(float(price)).strip())
+			nkd = float('{0: >#016.4f}'.format(float(nkd)).strip())
+			FACEVALUE = float('{0: >#016.4f}'.format(float(FACEVALUE)).strip())
+			ACCINT = float('{0: >#016.4f}'.format(float(ACCINT)).strip())
 
 			return {
 				'price': price,
@@ -767,10 +767,10 @@ def get_portfolio(uid):
 				result['stocks'].append({
 					'ticker': ticker,
 					'count': count,
-					'average_price': float('{0: >#016.2f}'.format(float(average_price))),
-					'close_price': float('{0: >#016.2f}'.format(float(api_price))),
-					'current_price': float('{0: >#016.2f}'.format(float(current_price))),
-					'price_difference': float('{0: >#016.2f}'.format(float(price_difference))),
+					'average_price': float('{0: >#016.4f}'.format(float(average_price))),
+					'close_price': float('{0: >#016.4f}'.format(float(api_price))),
+					'current_price': float('{0: >#016.4f}'.format(float(current_price))),
+					'price_difference': float('{0: >#016.4f}'.format(float(price_difference))),
 				})
 
 			# Получить все купленные тикеры облигаций
@@ -836,10 +836,10 @@ def get_portfolio(uid):
 				result['bonds'].append({
 					'ticker': ticker,
 					'count': count,
-					'average_price': float('{0: >#016.2f}'.format(float(average_price))),
-					'close_price': float('{0: >#016.2f}'.format(float(api_price))),
-					'current_price': float('{0: >#016.2f}'.format(float(current_price))),
-					'price_difference': float('{0: >#016.2f}'.format(float(price_difference))),
+					'average_price': float('{0: >#016.4f}'.format(float(average_price))),
+					'close_price': float('{0: >#016.4f}'.format(float(api_price))),
+					'current_price': float('{0: >#016.4f}'.format(float(current_price))),
+					'price_difference': float('{0: >#016.4f}'.format(float(price_difference))),
 				})
 		connection.commit()
 		return result
@@ -966,10 +966,29 @@ def get_account_state(uid):
 		connection.close()
 
 
+def standart_int(number):
+	"""
+	Привести чило к стандартному для пользователя виду
+	"""
+	def isInt(n):
+		return int(n) == float(n)
+	if isInt(number):
+		n = '{0:,}'.format(number).replace(',', ' ')
+		if '.'in n: 
+			return n[:-2]
+		return n
+	else:
+		n = float('{0: >#16.2f}'.format(number))
+		n = '{0:,}'.format(n).replace(',', ' ')
+		if len(n.split('.')[1]) == 1:
+			return '{!s}{!s}'.format(n, '0')
+		return n
+
+
 # print(get_account_state(217166737))
 # print(get_portfolio(217166737))
 # print(get_timestamp('21.03.3000'))
-# print(Moex.get_stock_price('SBER'))
+# print(Moex.get_stock_price('HYDR'))
 # print(Moex.get_bond_data('SU26210RMFS3'))
 # print(get_portfolio_amount(217166737))
 # update_moex()
