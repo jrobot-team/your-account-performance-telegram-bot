@@ -25,6 +25,7 @@ READY_TO_TAX = {}
 READY_TO_COMISSION = {}
 READY_TO_couponincome = {}
 READY_TO_DIVIDENDS = {}
+ACTIONS_MONITOR_DATA = {}
 
 
 def clear_actions(uid):
@@ -51,6 +52,8 @@ def clear_actions(uid):
 		del READY_TO_couponincome[uid]
 	if uid in READY_TO_DIVIDENDS:
 		del READY_TO_DIVIDENDS[uid]
+	if uid in ACTIONS_MONITOR_DATA:
+		del ACTIONS_MONITOR_DATA[uid]
 
 
 @bot.message_handler(commands=['start'])
@@ -180,10 +183,22 @@ def text_handler(message):
 				text = 'Неверный формат даты.\nФормат: ДД.ММ.ГГГГ'
 				return bot.send_message(cid, text)
 			READY_TO_ADD_AMOUNT[uid]['input_date'] = timestamp
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Дата', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите брокера'
 			return bot.send_message(cid, text)
 		if 'broker' not in READY_TO_ADD_AMOUNT[uid]:
 			READY_TO_ADD_AMOUNT[uid]['broker'] = message.text
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Брокер', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите сумму'
 			return bot.send_message(cid, text)
 		if 'amount' not in READY_TO_ADD_AMOUNT[uid]:
@@ -194,6 +209,12 @@ def text_handler(message):
 				text = 'Введите целое число!'
 				return bot.send_message(cid, text)
 			READY_TO_ADD_AMOUNT[uid]['amount'] = message.text
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Сумма', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			util.DataBase.add_new_amount(
 				uid, int(time.time()),
 				READY_TO_ADD_AMOUNT[uid]['input_date'],
@@ -201,6 +222,7 @@ def text_handler(message):
 				READY_TO_ADD_AMOUNT[uid]['broker'])
 			print(READY_TO_ADD_AMOUNT[uid])
 			del READY_TO_ADD_AMOUNT[uid]
+			del ACTIONS_MONITOR_DATA[uid]
 			text = 'Операция успешно добавлена'
 			bot.send_message(cid, text)
 			text = 'Выберите тип операции'
@@ -217,10 +239,22 @@ def text_handler(message):
 				text = 'Неверный формат даты.\nФормат: ДД.ММ.ГГГГ'
 				return bot.send_message(cid, text)
 			READY_TO_MINUS_ACCOUNT[uid]['input_date'] = timestamp
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Дата', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите брокера'
 			return bot.send_message(cid, text)
 		if 'broker' not in READY_TO_MINUS_ACCOUNT[uid]:
 			READY_TO_MINUS_ACCOUNT[uid]['broker'] = message.text
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Брокер', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите сумму'
 			return bot.send_message(cid, text)
 		if 'amount' not in READY_TO_MINUS_ACCOUNT[uid]:
@@ -231,6 +265,12 @@ def text_handler(message):
 				text = 'Введите целое число!'
 				return bot.send_message(cid, text)
 			READY_TO_MINUS_ACCOUNT[uid]['amount'] = message.text
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Сумма', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			print(READY_TO_MINUS_ACCOUNT[uid])
 			util.DataBase.add_minus_amount(
 				uid, int(time.time()), 
@@ -238,6 +278,7 @@ def text_handler(message):
 				READY_TO_MINUS_ACCOUNT[uid]['amount'],
 				READY_TO_MINUS_ACCOUNT[uid]['broker'])
 			del READY_TO_MINUS_ACCOUNT[uid]
+			del ACTIONS_MONITOR_DATA[uid]
 			text = 'Операция успешно добавлена'
 			bot.send_message(cid, text)
 			text = 'Выберите тип операции'
@@ -254,19 +295,37 @@ def text_handler(message):
 				text = 'Неверный формат даты.\nФормат: ДД.ММ.ГГГГ'
 				return bot.send_message(cid, text)
 			READY_TO_buystock[uid]['input_date'] = timestamp
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Дата', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите брокера'
 			return bot.send_message(cid, text)
 		if 'broker' not in READY_TO_buystock[uid]:
 			READY_TO_buystock[uid]['broker'] = message.text
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Брокер', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите тикер'
 			return bot.send_message(cid, text)
 		if 'ticker' not in READY_TO_buystock[uid]:
-			api_price = util.Moex.get_stock_price(message.text)
+			api_price = util.Moex.get_stock_price(message.text.upper())
 			if not api_price:
 				text = 'Такого тикера не существует'
 				return bot.send_message(cid, text)
 			READY_TO_buystock[uid]['api_price'] = api_price
 			READY_TO_buystock[uid]['ticker'] = message.text.upper()
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Тикер', 'value': message.text.upper()})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите количество акций'
 			return bot.send_message(cid, text)
 		if 'count' not in READY_TO_buystock[uid]:
@@ -276,6 +335,12 @@ def text_handler(message):
 				text = 'Введите целое число!'
 				return bot.send_message(cid, text)
 			READY_TO_buystock[uid]['count'] = int(message.text)
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Количество акций', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите цену акции'
 			return bot.send_message(cid, text)
 		if 'price' not in READY_TO_buystock[uid]:
@@ -286,6 +351,12 @@ def text_handler(message):
 				text = 'Введите целое число!'
 				return bot.send_message(cid, text)
 			READY_TO_buystock[uid]['price'] = message.text
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Цена акции', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			util.DataBase.add_buystock(
 				uid, int(time.time()),
 				READY_TO_buystock[uid]['input_date'],
@@ -296,6 +367,7 @@ def text_handler(message):
 				READY_TO_buystock[uid]['api_price'])
 			print(READY_TO_buystock[uid])
 			del READY_TO_buystock[uid]
+			del ACTIONS_MONITOR_DATA[uid]
 			text = 'Операция успешно добавлена'
 			bot.send_message(cid, text)
 			text = 'Выберите тип операции'
@@ -312,18 +384,36 @@ def text_handler(message):
 				text = 'Неверный формат даты.\nФормат: ДД.ММ.ГГГГ'
 				return bot.send_message(cid, text)
 			READY_TO_salestock[uid]['input_date'] = timestamp
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Дата', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите брокера'
 			return bot.send_message(cid, text)
 		if 'broker' not in READY_TO_salestock[uid]:
 			READY_TO_salestock[uid]['broker'] = message.text
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Брокер', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите тикер'
 			return bot.send_message(cid, text)
 		if 'ticker' not in READY_TO_salestock[uid]:
-			api_price = util.Moex.get_stock_price(message.text)
+			api_price = util.Moex.get_stock_price(message.text.upper())
 			if not api_price:
 				text = 'Такого тикера не существует'
 				return bot.send_message(cid, text)
 			READY_TO_salestock[uid]['ticker'] = message.text.upper()
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Тикер', 'value': message.text.upper()})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите количество акций'
 			return bot.send_message(cid, text)
 		if 'count' not in READY_TO_salestock[uid]:
@@ -333,6 +423,12 @@ def text_handler(message):
 				text = 'Введите целое число!'
 				return bot.send_message(cid, text)
 			READY_TO_salestock[uid]['count'] = int(message.text)
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Количество акций', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите цену акции'
 			return bot.send_message(cid, text)
 		if 'price' not in READY_TO_salestock[uid]:
@@ -343,6 +439,12 @@ def text_handler(message):
 				text = 'Введите целое число!'
 				return bot.send_message(cid, text)
 			READY_TO_salestock[uid]['price'] = message.text
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Цена акции', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			util.DataBase.add_salestock(
 				uid, int(time.time()),
 				READY_TO_salestock[uid]['input_date'],
@@ -352,6 +454,7 @@ def text_handler(message):
 				READY_TO_salestock[uid]['price'])
 			print(READY_TO_salestock[uid])
 			del READY_TO_salestock[uid]
+			del ACTIONS_MONITOR_DATA[uid]
 			text = 'Операция успешно добавлена'
 			bot.send_message(cid, text)
 			text = 'Выберите тип операции'
@@ -368,10 +471,22 @@ def text_handler(message):
 				text = 'Неверный формат даты.\nФормат: ДД.ММ.ГГГГ'
 				return bot.send_message(cid, text)
 			READY_TO_buybond[uid]['input_date'] = timestamp
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Дата', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите брокера'
 			return bot.send_message(cid, text)
 		if 'broker' not in READY_TO_buybond[uid]:
 			READY_TO_buybond[uid]['broker'] = message.text
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Брокер', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите тикер'
 			return bot.send_message(cid, text)
 		if 'ticker' not in READY_TO_buybond[uid]:
@@ -384,6 +499,12 @@ def text_handler(message):
 			READY_TO_buybond[uid]['api_FACEVALUE'] = data['FACEVALUE']
 			READY_TO_buybond[uid]['api_ACCINT'] = data['ACCINT']
 			READY_TO_buybond[uid]['ticker'] = message.text.upper()
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Тикер', 'value': message.text.upper()})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите количество облигаций'
 			return bot.send_message(cid, text)
 		if 'count' not in READY_TO_buybond[uid]:
@@ -393,6 +514,12 @@ def text_handler(message):
 				text = 'Введите целое число!'
 				return bot.send_message(cid, text)
 			READY_TO_buybond[uid]['count'] = int(message.text)
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Количество облигаций', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите цену облигации'
 			return bot.send_message(cid, text)
 		if 'price' not in READY_TO_buybond[uid]:
@@ -403,6 +530,12 @@ def text_handler(message):
 				text = 'Введите целое число!'
 				return bot.send_message(cid, text)
 			READY_TO_buybond[uid]['price'] = message.text
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Цена облигаици', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите НКД'
 			return bot.send_message(cid, text)
 		if 'nkd' not in READY_TO_buybond[uid]:
@@ -413,6 +546,12 @@ def text_handler(message):
 				text = 'Введите целое число!'
 				return bot.send_message(cid, text)
 			READY_TO_buybond[uid]['nkd'] = message.text
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'НКЛ', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			util.DataBase.add_buybond(
 				uid, int(time.time()), 
 				READY_TO_buybond[uid]['input_date'],
@@ -427,6 +566,7 @@ def text_handler(message):
 				READY_TO_buybond[uid]['api_ACCINT'])
 			print(READY_TO_buybond[uid])
 			del READY_TO_buybond[uid]
+			del ACTIONS_MONITOR_DATA[uid]
 			text = 'Операция успешно добавлена'
 			bot.send_message(cid, text)
 			text = 'Выберите тип операции'
@@ -443,10 +583,22 @@ def text_handler(message):
 				text = 'Неверный формат даты.\nФормат: ДД.ММ.ГГГГ'
 				return bot.send_message(cid, text)
 			READY_TO_salebond[uid]['input_date'] = timestamp
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Дата', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите брокера'
 			return bot.send_message(cid, text)
 		if 'broker' not in READY_TO_salebond[uid]:
 			READY_TO_salebond[uid]['broker'] = message.text
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Брокер', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите тикер'
 			return bot.send_message(cid, text)
 		if 'ticker' not in READY_TO_salebond[uid]:
@@ -455,6 +607,12 @@ def text_handler(message):
 				text = 'Такого тикера не существует'
 				return bot.send_message(cid, text)
 			READY_TO_salebond[uid]['ticker'] = message.text.upper()
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Тикер', 'value': message.text.upper()})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите количество облигаций'
 			return bot.send_message(cid, text)
 		if 'count' not in READY_TO_salebond[uid]:
@@ -464,6 +622,12 @@ def text_handler(message):
 				text = 'Введите целое число!'
 				return bot.send_message(cid, text)
 			READY_TO_salebond[uid]['count'] = message.text
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Количество облигаций', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите цену облигации'
 			return bot.send_message(cid, text)
 		if 'price' not in READY_TO_salebond[uid]:
@@ -474,6 +638,12 @@ def text_handler(message):
 				text = 'Введите целое число!'
 				return bot.send_message(cid, text)
 			READY_TO_salebond[uid]['price'] = message.text
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Цена облигации', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите НКД'
 			return bot.send_message(cid, text)
 		if 'nkd' not in READY_TO_salebond[uid]:
@@ -484,6 +654,12 @@ def text_handler(message):
 				text = 'Введите целое число!'
 				return bot.send_message(cid, text)
 			READY_TO_salebond[uid]['nkd'] = message.text
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'НКД', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			util.DataBase.add_salebond(
 				uid, int(time.time()), 
 				READY_TO_salebond[uid]['input_date'],
@@ -494,6 +670,7 @@ def text_handler(message):
 				READY_TO_salebond[uid]['price'])
 			print(READY_TO_salebond[uid])
 			del READY_TO_salebond[uid]
+			del ACTIONS_MONITOR_DATA[uid]
 			text = 'Операция успешно добавлена'
 			bot.send_message(cid, text)
 			text = 'Выберите тип операции'
@@ -510,10 +687,22 @@ def text_handler(message):
 				text = 'Неверный формат даты.\nФормат: ДД.ММ.ГГГГ'
 				return bot.send_message(cid, text)
 			READY_TO_TAX[uid]['input_date'] = timestamp
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Дата', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите брокера'
 			return bot.send_message(cid, text)
 		if 'broker' not in READY_TO_TAX[uid]:
 			READY_TO_TAX[uid]['broker'] = message.text
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Брокер', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите сумму'
 			return bot.send_message(cid, text)
 		if 'amount' not in READY_TO_TAX[uid]:
@@ -524,6 +713,12 @@ def text_handler(message):
 				text = 'Введите целое число!'
 				return bot.send_message(cid, text)
 			READY_TO_TAX[uid]['amount'] = message.text
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Сумма', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			util.DataBase.add_new_tax(
 				uid, int(time.time()), 
 				READY_TO_TAX[uid]['input_date'],
@@ -531,6 +726,7 @@ def text_handler(message):
 				READY_TO_TAX[uid]['broker'])
 			print(READY_TO_TAX[uid])
 			del READY_TO_TAX[uid]
+			del ACTIONS_MONITOR_DATA[uid]
 			text = 'Операция успешно добавлена'
 			bot.send_message(cid, text)
 			text = 'Выберите тип операции'
@@ -547,10 +743,22 @@ def text_handler(message):
 				text = 'Неверный формат даты.\nФормат: ДД.ММ.ГГГГ'
 				return bot.send_message(cid, text)
 			READY_TO_COMISSION[uid]['input_date'] = timestamp
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Дата', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите брокера'
 			return bot.send_message(cid, text)
 		if 'broker' not in READY_TO_COMISSION[uid]:
 			READY_TO_COMISSION[uid]['broker'] = message.text
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Брокер', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите сумму'
 			return bot.send_message(cid, text)
 		if 'amount' not in READY_TO_COMISSION[uid]:
@@ -561,6 +769,12 @@ def text_handler(message):
 				text = 'Введите целое число!'
 				return bot.send_message(cid, text)
 			READY_TO_COMISSION[uid]['amount'] = message.text
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Сумма', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			util.DataBase.add_new_commission(
 				uid, int(time.time()), 
 				READY_TO_COMISSION[uid]['input_date'],
@@ -568,6 +782,7 @@ def text_handler(message):
 				READY_TO_COMISSION[uid]['broker'])
 			print(READY_TO_COMISSION[uid])
 			del READY_TO_COMISSION[uid]
+			del ACTIONS_MONITOR_DATA[uid]
 			text = 'Операция успешно добавлена'
 			bot.send_message(cid, text)
 			text = 'Выберите тип операции'
@@ -584,14 +799,32 @@ def text_handler(message):
 				text = 'Неверный формат даты.\nФормат: ДД.ММ.ГГГГ'
 				return bot.send_message(cid, text)
 			READY_TO_couponincome[uid]['input_date'] = timestamp
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Дата', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите брокера'
 			return bot.send_message(cid, text)
 		if 'broker' not in READY_TO_couponincome[uid]:
 			READY_TO_couponincome[uid]['broker'] = message.text
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Брокер', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите тикер'
 			return bot.send_message(cid, text)
 		if 'bond' not in READY_TO_couponincome[uid]:
 			READY_TO_couponincome[uid]['bond'] = message.text
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Тикер', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите сумму'
 			return bot.send_message(cid, text)
 		if 'amount' not in READY_TO_couponincome[uid]:
@@ -602,6 +835,12 @@ def text_handler(message):
 				text = 'Введите целое число!'
 				return bot.send_message(cid, text)
 			READY_TO_couponincome[uid]['amount'] = message.text
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Сумма', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			util.DataBase.add_new_couponincome(
 				uid, int(time.time()), 
 				READY_TO_couponincome[uid]['input_date'],
@@ -610,6 +849,7 @@ def text_handler(message):
 				READY_TO_couponincome[uid]['broker'])
 			print(READY_TO_couponincome[uid])
 			del READY_TO_couponincome[uid]
+			del ACTIONS_MONITOR_DATA[uid]
 			text = 'Операция успешно добавлена'
 			bot.send_message(cid, text)
 			text = 'Выберите тип операции'
@@ -626,14 +866,32 @@ def text_handler(message):
 				text = 'Неверный формат даты.\nФормат: ДД.ММ.ГГГГ'
 				return bot.send_message(cid, text)
 			READY_TO_DIVIDENDS[uid]['input_date'] = timestamp
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Дата', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите брокера'
 			return bot.send_message(cid, text)
 		if 'broker' not in READY_TO_DIVIDENDS[uid]:
 			READY_TO_DIVIDENDS[uid]['broker'] = message.text
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Брокер', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите тикер'
 			return bot.send_message(cid, text)
 		if 'dividend' not in READY_TO_DIVIDENDS[uid]:
 			READY_TO_DIVIDENDS[uid]['dividend'] = message.text
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Тикер', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			text = 'Укажите сумму'
 			return bot.send_message(cid, text)
 		if 'amount' not in READY_TO_DIVIDENDS[uid]:
@@ -644,6 +902,12 @@ def text_handler(message):
 				text = 'Введите целое число!'
 				return bot.send_message(cid, text)
 			READY_TO_DIVIDENDS[uid]['amount'] = message.text
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Сумма', 'value': message.text})
+			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+			if 'data' in ACTIONS_MONITOR_DATA[uid]:
+				for x in ACTIONS_MONITOR_DATA[uid]['data']:
+					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
+			bot.send_message(cid, text)
 			util.DataBase.add_new_dividend(
 				uid, int(time.time()), 
 				READY_TO_DIVIDENDS[uid]['input_date'],
@@ -652,6 +916,7 @@ def text_handler(message):
 				READY_TO_DIVIDENDS[uid]['broker'])
 			print(READY_TO_DIVIDENDS[uid])
 			del READY_TO_DIVIDENDS[uid]
+			del ACTIONS_MONITOR_DATA[uid]
 			text = 'Операция успешно добавлена'
 			bot.send_message(cid, text)
 			text = 'Выберите тип операции'
@@ -788,60 +1053,100 @@ def callback_inline(call):
 	# Обработать кнопки выбора операции
 	if call.data == 'add_amount':
 		clear_actions(uid)
+		ACTIONS_MONITOR_DATA[uid] = {'action_title': 'Пополнение счета'}
+		ACTIONS_MONITOR_DATA[uid]['data'] = []
+		text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+		bot.send_message(cid, text)
 		bot.delete_message(cid, call.message.message_id)
 		READY_TO_ADD_AMOUNT[uid] = {}
 		text = 'Введите дату операции\nФормат: ДД.ММ.ГГГГ'
 		return bot.send_message(cid, text)
 	elif call.data == 'minus_amount':
 		clear_actions(uid)
+		ACTIONS_MONITOR_DATA[uid] = {'action_title': 'Вывод средств'}
+		ACTIONS_MONITOR_DATA[uid]['data'] = []
+		text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+		bot.send_message(cid, text)
 		bot.delete_message(cid, call.message.message_id)
 		READY_TO_MINUS_ACCOUNT[uid] = {}
 		text = 'Введите дату операции\nФормат: ДД.ММ.ГГГГ'
 		return bot.send_message(cid, text)
 	elif call.data == 'add_aczii':
 		clear_actions(uid)
+		ACTIONS_MONITOR_DATA[uid] = {'action_title': 'Покупка акций'}
+		ACTIONS_MONITOR_DATA[uid]['data'] = []
+		text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+		bot.send_message(cid, text)
 		bot.delete_message(cid, call.message.message_id)
 		READY_TO_buystock[uid] = {}
 		text = 'Введите дату операции\nФормат: ДД.ММ.ГГГГ'
 		return bot.send_message(cid, text)
 	elif call.data == 'delete_aczii':
 		clear_actions(uid)
+		ACTIONS_MONITOR_DATA[uid] = {'action_title': 'Продажа акций'}
+		ACTIONS_MONITOR_DATA[uid]['data'] = []
+		text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+		bot.send_message(cid, text)
 		bot.delete_message(cid, call.message.message_id)
 		READY_TO_salestock[uid] = {}
 		text = 'Введите дату операции\nФормат: ДД.ММ.ГГГГ'
 		return bot.send_message(cid, text)
 	elif call.data == 'add_oblig':
 		clear_actions(uid)
+		ACTIONS_MONITOR_DATA[uid] = {'action_title': 'Покупка облигаций'}
+		ACTIONS_MONITOR_DATA[uid]['data'] = []
+		text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+		bot.send_message(cid, text)
 		bot.delete_message(cid, call.message.message_id)
 		READY_TO_buybond[uid] = {}
 		text = 'Введите дату операции\nФормат: ДД.ММ.ГГГГ'
 		return bot.send_message(cid, text)
 	elif call.data == 'delete_oblig':
 		clear_actions(uid)
+		ACTIONS_MONITOR_DATA[uid] = {'action_title': 'Продажа облигаций'}
+		ACTIONS_MONITOR_DATA[uid]['data'] = []
+		text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+		bot.send_message(cid, text)
 		bot.delete_message(cid, call.message.message_id)
 		READY_TO_salebond[uid] = {}
 		text = 'Введите дату операции\nФормат: ДД.ММ.ГГГГ'
 		return bot.send_message(cid, text)
 	elif call.data == 'pay_nalog':
 		clear_actions(uid)
+		ACTIONS_MONITOR_DATA[uid] = {'action_title': 'Налог'}
+		ACTIONS_MONITOR_DATA[uid]['data'] = []
+		text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+		bot.send_message(cid, text)
 		bot.delete_message(cid, call.message.message_id)
 		READY_TO_TAX[uid] = {}
 		text = 'Введите дату операции\nФормат: ДД.ММ.ГГГГ'
 		return bot.send_message(cid, text)
 	elif call.data == 'pay_comission':
 		clear_actions(uid)
+		ACTIONS_MONITOR_DATA[uid] = {'action_title': 'Комиссия'}
+		ACTIONS_MONITOR_DATA[uid]['data'] = []
+		text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+		bot.send_message(cid, text)
 		bot.delete_message(cid, call.message.message_id)
 		READY_TO_COMISSION[uid] = {}
 		text = 'Введите дату операции\nФормат: ДД.ММ.ГГГГ'
 		return bot.send_message(cid, text)
 	if call.data == 'get_cupon':
 		clear_actions(uid)
+		ACTIONS_MONITOR_DATA[uid] = {'action_title': 'Купонный доход'}
+		ACTIONS_MONITOR_DATA[uid]['data'] = []
+		text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+		bot.send_message(cid, text)
 		bot.delete_message(cid, call.message.message_id)
 		READY_TO_couponincome[uid] = {}
 		text = 'Введите дату операции\nФормат: ДД.ММ.ГГГГ'
 		return bot.send_message(cid, text)
 	if call.data == 'get_dividends':
 		clear_actions(uid)
+		ACTIONS_MONITOR_DATA[uid] = {'action_title': 'Дивиденды'}
+		ACTIONS_MONITOR_DATA[uid]['data'] = []
+		text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
+		bot.send_message(cid, text)
 		bot.delete_message(cid, call.message.message_id)
 		READY_TO_DIVIDENDS[uid] = {}
 		text = 'Введите дату операции\nФормат: ДД.ММ.ГГГГ'
@@ -863,7 +1168,7 @@ def main():
 	th1 = threading.Thread(target=monitor)
 	th1.start()
 	if config.DEBUG:
-		apihelper.proxy = {'https': 'socks5h://111.223.75.178:8888'}
+		apihelper.proxy = config.PROXY
 		bot.polling(none_stop=True, interval=0)
 	else:
 		while True:

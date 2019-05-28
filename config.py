@@ -1,5 +1,6 @@
 BOT_TOKEN = '857078060:AAG5zcSuFPh6-XSd1SVTQ45r-tLVqOGEUx0'
 DEBUG = False
+PROXY = {'https': 'socks5h://vielfrass:vielfrass@vielfrassx.tk:8000'}
 
 # MySql auth data
 # CREATE DATABASE `account_performance` CHARACTER SET utf8 COLLATE utf8_general_ci;
