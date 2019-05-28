@@ -1123,6 +1123,7 @@ def callback_inline(call):
 		keyboard = types.InlineKeyboardMarkup()
 		for x in mk:
 			keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
+		keyboard.add(types.InlineKeyboardButton(text='В портфель', callback_data='portfel'))
 		return bot.send_message(cid, text, reply_markup=keyboard)
 
 	# Обработать удаление операций
