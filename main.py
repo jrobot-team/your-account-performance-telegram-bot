@@ -487,6 +487,8 @@ def text_handler(message):
 			text = 'Укажите тикер'
 			return bot.send_message(cid, text)
 		if 'ticker' not in READY_TO_buybond[uid]:
+			text = 'Проверка существования тикера. Пожалуйста, подождите...'
+			bot.send_message(cid, text)
 			data = util.Moex.get_bond_data(message.text)
 			if not data:
 				text = 'Такого тикера не существует'
@@ -603,6 +605,8 @@ def text_handler(message):
 			text = 'Укажите тикер'
 			return bot.send_message(cid, text)
 		if 'ticker' not in READY_TO_salebond[uid]:
+			text = 'Проверка существования тикера. Пожалуйста, подождите...'
+			bot.send_message(cid, text)
 			data = util.Moex.get_bond_data(message.text)
 			if not data:
 				text = 'Такого тикера не существует'

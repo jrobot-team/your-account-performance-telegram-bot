@@ -604,36 +604,47 @@ class Moex:
 		"""
 		Получить стоимость облигации
 		"""
-		try:
-			current_date = datetime.datetime.now().strftime('%Y-%m-%d')
-			last_day = (datetime.datetime.now() - datetime.timedelta(days=30)).strftime('%Y-%m-%d')
-			res = requests.get('http://iss.moex.com/iss/securities.json?q={!s}'.format(code))
-			board = res.json()['securities']['data'][0][-1]
-			url = 'http://iss.moex.com/iss/history/engines/stock/markets/bonds/boards/{!s}/securities/{!s}.json?from={!s}&till={!s}'.format(
-				board, code, last_day, current_date
-			)
-			res = requests.get(url)
-			print(url)
+		days = 60
+		while True:
+			if days > 1740:
+				return None
+			try:
+				current_date = datetime.datetime.now().strftime('%Y-%m-%d')
+				last_day = (datetime.datetime.now() - datetime.timedelta(days=days)).strftime('%Y-%m-%d')
+				res = requests.get('http://iss.moex.com/iss/securities.json?q={!s}'.format(code))
+				board = res.json()['securities']['data'][0][-1]
+				url = 'http://iss.moex.com/iss/history/engines/stock/markets/bonds/boards/{!s}/securities/{!s}.json?from={!s}&till={!s}'.format(
+					board, code, last_day, current_date
+				)
+				res = requests.get(url)
+				print(url)
 
-			price = res.json()['history']['data'][-1][9]
-			nkd = res.json()['history']['data'][-1][27]
-			FACEVALUE = res.json()['history']['data'][-1][30]
-			ACCINT = res.json()['history']['data'][-1][10]
+				price = res.json()['history']['data'][-1][9]
+				nkd = res.json()['history']['data'][-1][27]
+				FACEVALUE = res.json()['history']['data'][-1][30]
+				ACCINT = res.json()['history']['data'][-1][10]
 
-			price = float('{0: >#016.4f}'.format(float(price)).strip())
-			nkd = float('{0: >#016.4f}'.format(float(nkd)).strip())
-			FACEVALUE = float('{0: >#016.4f}'.format(float(FACEVALUE)).strip())
-			ACCINT = float('{0: >#016.4f}'.format(float(ACCINT)).strip())
+				if nkd is None:
+					nkd = 0
 
-			return {
-				'price': price,
-				'nkd': nkd,
-				'FACEVALUE': FACEVALUE,
-				'ACCINT': ACCINT,
-			}
-		except Exception as e:
-			print(e)
-			return None
+				price = float('{0: >#016.4f}'.format(float(price)).strip())
+				nkd = float('{0: >#016.4f}'.format(float(nkd)).strip())
+				FACEVALUE = float('{0: >#016.4f}'.format(float(FACEVALUE)).strip())
+				ACCINT = float('{0: >#016.4f}'.format(float(ACCINT)).strip())
+
+				return {
+					'price': price,
+					'nkd': nkd,
+					'FACEVALUE': FACEVALUE,
+					'ACCINT': ACCINT,
+				}
+			except IndexError as e:
+				print(e)
+				days += 60
+				continue
+			except Exception as e:
+				print(e)
+				return None
 
 
 def update_moex():
@@ -997,6 +1008,6 @@ def standart_int(number):
 # print(get_portfolio(217166737))
 # print(get_timestamp('21.03.3000'))
 # print(Moex.get_stock_price('HYDR'))
-# print(Moex.get_bond_data('SU26210RMFS3'))
+# print(Moex.get_bond_data('SU26204RMFS6'))  # SU26210RMFS3
 # print(get_portfolio_amount(217166737))
 # update_moex()
