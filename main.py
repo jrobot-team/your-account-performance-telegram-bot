@@ -527,7 +527,7 @@ def text_handler(message):
 				text = 'Введите целое число!'
 				return bot.send_message(cid, text)
 			READY_TO_buybond[uid]['price'] = message.text
-			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Цена облигаици', 'value': message.text})
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'Цена облигации', 'value': message.text})
 			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
 			if 'data' in ACTIONS_MONITOR_DATA[uid]:
 				for x in ACTIONS_MONITOR_DATA[uid]['data']:
@@ -543,7 +543,7 @@ def text_handler(message):
 				text = 'Введите целое число!'
 				return bot.send_message(cid, text)
 			READY_TO_buybond[uid]['nkd'] = message.text
-			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'НКЛ', 'value': message.text})
+			ACTIONS_MONITOR_DATA[uid]['data'].append({'key': 'НКД', 'value': message.text})
 			text = '{!s}\n'.format(ACTIONS_MONITOR_DATA[uid]['action_title'])
 			if 'data' in ACTIONS_MONITOR_DATA[uid]:
 				for x in ACTIONS_MONITOR_DATA[uid]['data']:

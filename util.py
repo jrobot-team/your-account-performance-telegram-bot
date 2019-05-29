@@ -858,7 +858,7 @@ def get_portfolio_amount(uid):
 		amount += x['price_difference']
 	for x in data['bonds']:
 		amount += x['price_difference']
-	return int(amount)
+	return float(amount)
 
 
 def get_account_state(uid):
@@ -955,8 +955,8 @@ def get_account_state(uid):
 			amount1 += x['current_price']
 		for x in data1['bonds']:
 			amount1 += x['current_price']
-		broker_amount = int(amount1) + int(amount)
-		amount = int(amount)
+		broker_amount = float(amount1) + float(amount)
+		amount = float(amount)
 		return {
 			'amount': amount,
 			'money_amount': money_amount,
@@ -978,8 +978,16 @@ def standart_int(number):
 			return n[:-2]
 		return n
 	else:
-		n = float('{0: >#16.2f}'.format(number))
+		n = float('{0: >#16.4f}'.format(number))
 		n = '{0:,}'.format(n).replace(',', ' ')
+		'''
+		if len(n.split('.')[1]) == 1:
+			return '{!s}{!s}'.format(n, '000')
+		if len(n.split('.')[1]) == 2:
+			return '{!s}{!s}'.format(n, '00')
+		if len(n.split('.')[1]) == 3:
+			return '{!s}{!s}'.format(n, '0')
+		'''
 		if len(n.split('.')[1]) == 1:
 			return '{!s}{!s}'.format(n, '0')
 		return n
