@@ -2,6 +2,7 @@ import time
 import datetime
 from operator import itemgetter
 
+import xlsxwriter
 import requests
 import pymysql.cursors
 
@@ -761,8 +762,10 @@ def get_portfolio(uid):
 				amount = 0
 				for x in res1:
 					amount += float(x['price']) * int(x['count'])
+				'''
 				for x in res2:
 					amount -= float(x['price']) * int(x['count'])
+				'''
 				# Сумма всех цен операций покупки
 				# Средняя стоимость
 				average_price = amount / count
@@ -821,8 +824,10 @@ def get_portfolio(uid):
 				amount = 0
 				for x in res1:
 					amount += (float(x['price']) + float(x['nkd'])) * int(x['count'])
+				'''
 				for x in res2:
 					amount -= (float(x['price']) + float(x['nkd'])) * int(x['count'])
+				'''
 				# Сумма всех цен операций покупки
 				# Средняя стоимость
 				average_price = amount / count
@@ -1002,6 +1007,123 @@ def standart_int(number):
 		if len(n.split('.')[1]) == 1:
 			return '{!s}{!s}'.format(n, '0')
 		return n
+
+
+def create_excel_export_file(uid):
+	"""
+	Создать файл excel для экспорта операций
+	"""
+	filename = 'export_{!s}.xlsx'.format(uid)
+	workbook = xlsxwriter.Workbook(filename=filename)
+	worksheet = workbook.add_worksheet()
+	worksheet.set_column('A:A', 15)
+	worksheet.set_column('A:B', 20)
+	worksheet.set_column('A:C', 15)
+	worksheet.set_column('A:D', 15)
+	worksheet.set_column('A:E', 15)
+	worksheet.set_column('A:F', 15)
+	worksheet.set_column('A:G', 15)
+	worksheet.set_column('A:H', 15)
+
+	history = get_history(uid, 2171667370, 0)
+
+	row = 0
+	bold = workbook.add_format({'bold': True})
+	worksheet.write(row, 0, 'Дата операции')
+	worksheet.write(row, 1, 'Тип операции')
+	worksheet.write(row, 2, 'Брокер')
+	worksheet.write(row, 3, 'Тикер')
+	worksheet.write(row, 4, 'Количество')
+	worksheet.write(row, 5, 'Цена')
+	worksheet.write(row, 6, 'Сумма')
+	worksheet.write(row, 7, 'НКД')
+
+	for x in history:
+		if x['table'] == 'accountamount':
+			row += 1
+			_date = datetime.datetime.utcfromtimestamp(int(x['input_date'])).strftime('%d.%m.%Y')
+			worksheet.write(row, 0, _date)
+			worksheet.write(row, 1, 'Пополнение счета')
+			worksheet.write(row, 6, x['amount'])
+			worksheet.write(row, 2, x['broker'])
+		elif x['table'] == 'accountminusamount':
+			row += 1
+			_date = datetime.datetime.utcfromtimestamp(int(x['input_date'])).strftime('%d.%m.%Y')
+			worksheet.write(row, 0, _date)
+			worksheet.write(row, 1, 'Вывод средств')
+			worksheet.write(row, 6, x['amount'])
+			worksheet.write(row, 2, x['broker'])
+		elif x['table'] == 'buystock':
+			row += 1
+			_date = datetime.datetime.utcfromtimestamp(int(x['input_date'])).strftime('%d.%m.%Y')
+			worksheet.write(row, 0, _date)
+			worksheet.write(row, 1, 'Покупка акций')
+			worksheet.write(row, 3, x['ticker'])
+			worksheet.write(row, 4, x['count'])
+			worksheet.write(row, 2, x['broker'])
+			worksheet.write(row, 5, x['price'])
+		elif x['table'] == 'salestock':
+			row += 1
+			_date = datetime.datetime.utcfromtimestamp(int(x['input_date'])).strftime('%d.%m.%Y')
+			worksheet.write(row, 0, _date)
+			worksheet.write(row, 1, 'Продажа акций')
+			worksheet.write(row, 3, x['ticker'])
+			worksheet.write(row, 4, x['count'])
+			worksheet.write(row, 2, x['broker'])
+			worksheet.write(row, 5, x['price'])
+		elif x['table'] == 'buybond':
+			row += 1
+			_date = datetime.datetime.utcfromtimestamp(int(x['input_date'])).strftime('%d.%m.%Y')
+			worksheet.write(row, 0, _date)
+			worksheet.write(row, 1, 'Покупка облигаций')
+			worksheet.write(row, 3, x['ticker'])
+			worksheet.write(row, 4, x['count'])
+			worksheet.write(row, 2, x['broker'])
+			worksheet.write(row, 5, x['price'])
+			worksheet.write(row, 7, x['nkd'])
+		elif x['table'] == 'salebond':
+			row += 1
+			_date = datetime.datetime.utcfromtimestamp(int(x['input_date'])).strftime('%d.%m.%Y')
+			worksheet.write(row, 0, _date)
+			worksheet.write(row, 1, 'Продажа облигаций')
+			worksheet.write(row, 3, x['ticker'])
+			worksheet.write(row, 4, x['count'])
+			worksheet.write(row, 2, x['broker'])
+			worksheet.write(row, 5, x['price'])
+			worksheet.write(row, 7, x['nkd'])
+		elif x['table'] == 'taxes':
+			row += 1
+			_date = datetime.datetime.utcfromtimestamp(int(x['input_date'])).strftime('%d.%m.%Y')
+			worksheet.write(row, 0, _date)
+			worksheet.write(row, 1, 'Налоги')
+			worksheet.write(row, 6, x['amount'])
+			worksheet.write(row, 2, x['broker'])
+		elif x['table'] == 'comissions':
+			row += 1
+			_date = datetime.datetime.utcfromtimestamp(int(x['input_date'])).strftime('%d.%m.%Y')
+			worksheet.write(row, 0, _date)
+			worksheet.write(row, 1, 'Комиссия')
+			worksheet.write(row, 6, x['amount'])
+			worksheet.write(row, 2, x['broker'])
+		elif x['table'] == 'couponincome':
+			row += 1
+			_date = datetime.datetime.utcfromtimestamp(int(x['input_date'])).strftime('%d.%m.%Y')
+			worksheet.write(row, 0, _date)
+			worksheet.write(row, 1, 'Купонный доход')
+			worksheet.write(row, 6, x['amount'])
+			worksheet.write(row, 2, x['broker'])
+			worksheet.write(row, 3, x['bond'])
+		elif x['table'] == 'dividends':
+			row += 1
+			_date = datetime.datetime.utcfromtimestamp(int(x['input_date'])).strftime('%d.%m.%Y')
+			worksheet.write(row, 0, _date)
+			worksheet.write(row, 1, 'Дивиденды')
+			worksheet.write(row, 6, x['amount'])
+			worksheet.write(row, 2, x['broker'])
+			worksheet.write(row, 3, x['dividend'])
+
+	workbook.close()
+	return filename
 
 
 # print(get_account_state(217166737))

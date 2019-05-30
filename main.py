@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import time
 import datetime
 import threading
@@ -1129,6 +1130,13 @@ def callback_inline(call):
 			keyboard.add(types.InlineKeyboardButton(text=x[0]['text'], callback_data=x[0]['callback']))
 		keyboard.add(types.InlineKeyboardButton(text='В портфель', callback_data='portfel'))
 		return bot.send_message(cid, text, reply_markup=keyboard)
+
+	# Обработать экспорт истории операций
+	if call.data == 'export_history':
+		file = util.create_excel_export_file(uid)
+		bot.send_document(uid, open(file, 'rb'), caption='Ваша история операций')
+		os.remove(file)
+		return
 
 	# Обработать удаление операций
 	if call.data.startswith('delop'):

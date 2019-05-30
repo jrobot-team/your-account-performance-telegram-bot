@@ -45,4 +45,5 @@ history_markup = [
 	[{'text': 'За предыдущий месяц', 'callback': 'history_money_lastmonth'}],
 	[{'text': 'За три месяца', 'callback': 'history_money_threemonths'}],
 	[{'text': 'Все', 'callback': 'history_money_allmonths'}],
+	[{'text': 'Экспорт', 'callback': 'export_history'}],
 ]
