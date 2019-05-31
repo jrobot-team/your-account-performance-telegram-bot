@@ -2,8 +2,9 @@ import time
 import datetime
 from operator import itemgetter
 
-import xlsxwriter
+import openpyxl
 import requests
+import xlsxwriter
 import pymysql.cursors
 
 import config
@@ -745,27 +746,23 @@ def get_portfolio(uid):
 				sql = 'SELECT * FROM buystock WHERE uid=%s AND ticker=%s'
 				cursor.execute(sql, (uid, ticker))
 				res1 = cursor.fetchall()
+				amount = 0
 				buy_count = 0
 				for x in res1:
+					amount += float(x['price']) * int(x['count'])
 					buy_count += x['count']
 				sql = 'SELECT * FROM salestock WHERE uid=%s AND ticker=%s'
 				cursor.execute(sql, (uid, ticker))
 				res2 = cursor.fetchall()
 				sale_count = 0
 				for x in res2:
+					amount -= float(x['price']) * int(x['count'])
 					sale_count += x['count']
 				# Количество акций по тикеру
 				count = buy_count - sale_count
 				if count == 0:
 					continue
 
-				amount = 0
-				for x in res1:
-					amount += float(x['price']) * int(x['count'])
-				'''
-				for x in res2:
-					amount -= float(x['price']) * int(x['count'])
-				'''
 				# Сумма всех цен операций покупки
 				# Средняя стоимость
 				average_price = amount / count
@@ -807,27 +804,23 @@ def get_portfolio(uid):
 				sql = 'SELECT * FROM buybond WHERE uid=%s AND ticker=%s'
 				cursor.execute(sql, (uid, ticker))
 				res1 = cursor.fetchall()
+				amount = 0
 				buy_count = 0
 				for x in res1:
+					amount += (float(x['price']) + float(x['nkd'])) * int(x['count'])
 					buy_count += x['count']
 				sql = 'SELECT * FROM salebond WHERE uid=%s AND ticker=%s'
 				cursor.execute(sql, (uid, ticker))
 				res2 = cursor.fetchall()
 				sale_count = 0
 				for x in res2:
+					amount -= (float(x['price']) + float(x['nkd'])) * int(x['count'])
 					sale_count += x['count']
 				# Количество облигаций по тикеру
 				count = buy_count - sale_count
 				if count == 0:
 					continue
 
-				amount = 0
-				for x in res1:
-					amount += (float(x['price']) + float(x['nkd'])) * int(x['count'])
-				'''
-				for x in res2:
-					amount -= (float(x['price']) + float(x['nkd'])) * int(x['count'])
-				'''
 				# Сумма всех цен операций покупки
 				# Средняя стоимость
 				average_price = amount / count
@@ -1126,6 +1119,124 @@ def create_excel_export_file(uid):
 	return filename
 
 
+def import_excel_file(uid, filename):
+	"""
+	Импортировать excel файл с операциями
+	"""
+	book = openpyxl.load_workbook(filename)
+	sheet = book.active
+
+	row = 2
+	err_message = ''
+
+	# Перебираем все строки в файле
+	while True:
+		try:
+			operation_type = sheet.cell(row=row, column=2)
+			# Проверяем, что ячейка не пустая
+			if not operation_type.value:
+				break
+
+			# Обработать операции по названию
+			if operation_type.value.lower() == 'пополнение счета':
+				_date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				broker = sheet.cell(row, 3).value
+				amount = sheet.cell(row, 7).value
+				DataBase.add_new_amount(uid, int(time.time()), _date, amount, broker)
+			elif operation_type.value.lower() == 'вывод средств':
+				_date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				broker = sheet.cell(row, 3).value
+				amount = sheet.cell(row, 7).value
+				DataBase.add_minus_amount(uid, int(time.time()), _date, amount, broker)
+			elif operation_type.value.lower() == 'покупка акций':
+				_date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				broker = sheet.cell(row, 3).value
+				tiker = sheet.cell(row, 4).value
+				count = sheet.cell(row, 5).value
+				price = sheet.cell(row, 6).value
+				api_price = Moex.get_stock_price(tiker.upper())
+				if not api_price:
+					err_message = 'Строка {!s}: Такого тикера не существует\n'.format(row)
+					row += 1
+					continue
+				DataBase.add_buystock(uid, int(time.time()), _date, tiker, count, broker, price, api_price)
+			elif operation_type.value.lower() == 'продажа акций':
+				_date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				broker = sheet.cell(row, 3).value
+				tiker = sheet.cell(row, 4).value
+				count = sheet.cell(row, 5).value
+				price = sheet.cell(row, 6).value
+				api_price = Moex.get_stock_price(tiker.upper())
+				if not api_price:
+					err_message = 'Строка {!s}: Такого тикера не существует\n'.format(row)
+					row += 1
+					continue
+				DataBase.add_salestock(uid, int(time.time()), _date, tiker, count, broker, price)
+			elif operation_type.value.lower() == 'покупка облигаций':
+				_date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				broker = sheet.cell(row, 3).value
+				tiker = sheet.cell(row, 4).value
+				count = sheet.cell(row, 5).value
+				price = sheet.cell(row, 6).value
+				nkd = sheet.cell(row, 8).value
+				data = Moex.get_bond_data(tiker.upper())
+				if not data:
+					err_message = 'Строка {!s}: Такого тикера не существует\n'.format(row)
+					row += 1
+					continue
+				api_price = data['price']
+				api_nkd = data['nkd']
+				api_FACEVALUE = data['FACEVALUE']
+				api_ACCINT = data['ACCINT']
+				DataBase.add_buybond(
+					uid, int(time.time()), _date, tiker, count, nkd, price, 
+					broker, api_price, api_nkd, api_FACEVALUE, api_ACCINT)
+			elif operation_type.value.lower() == 'продажа облигаций':
+				_date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				broker = sheet.cell(row, 3).value
+				tiker = sheet.cell(row, 4).value
+				count = sheet.cell(row, 5).value
+				price = sheet.cell(row, 6).value
+				nkd = sheet.cell(row, 8).value
+				data = Moex.get_bond_data(tiker.upper())
+				if not data:
+					err_message = 'Строка {!s}: Такого тикера не существует\n'.format(row)
+					row += 1
+					continue
+				DataBase.add_salebond(uid, int(time.time()), _date, tiker, count, broker, nkd, price)
+			elif operation_type.value.lower() in ['налог', 'налоги']:
+				_date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				broker = sheet.cell(row, 3).value
+				amount = sheet.cell(row, 7).value
+				DataBase.add_new_tax(uid, int(time.time()), _date, amount, broker)
+			elif operation_type.value.lower() in ['комиссия']:
+				_date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				broker = sheet.cell(row, 3).value
+				amount = sheet.cell(row, 7).value
+				DataBase.add_new_commission(uid, int(time.time()), _date, amount, broker)
+			elif operation_type.value.lower() in ['купонный доход']:
+				_date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				broker = sheet.cell(row, 3).value
+				tiker = sheet.cell(row, 4).value
+				amount = sheet.cell(row, 7).value
+				DataBase.add_new_couponincome(uid, int(time.time()), _date, tiker, amount, broker)
+			elif operation_type.value.lower() in ['дивиденды']:
+				_date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				broker = sheet.cell(row, 3).value
+				tiker = sheet.cell(row, 4).value
+				amount = sheet.cell(row, 7).value
+				DataBase.add_new_dividend(uid, int(time.time()), _date, tiker, amount, broker)
+		except Exception as e:
+			print(e)
+			err_message += 'Ошибка в строке {!s}\n'.format(row)
+			continue
+
+		row += 1
+
+	return err_message
+
+
+# print(import_excel_file(217166737, 'import_217166737.xlsx'))
 # print(get_account_state(217166737))
 # print(get_portfolio(217166737))
 # print(get_timestamp('21.03.3000'))

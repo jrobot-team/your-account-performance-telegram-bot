@@ -27,6 +27,7 @@ READY_TO_COMISSION = {}
 READY_TO_couponincome = {}
 READY_TO_DIVIDENDS = {}
 ACTIONS_MONITOR_DATA = {}
+READY_TO_IMPORT_FILE = {}
 
 
 def clear_actions(uid):
@@ -81,6 +82,28 @@ def remove_message_handler(message):
 	text = 'Нижнее меню удалено'
 	markup = types.ReplyKeyboardRemove()
 	return bot.send_message(cid, text, reply_markup=markup)
+
+
+@bot.message_handler(content_types=['document'])
+def text_handler(message):
+	cid = message.chat.id
+	uid = message.from_user.id
+	# Обработать принятие файла импорта
+	if uid in READY_TO_IMPORT_FILE:
+		file_info = bot.get_file(message.document.file_id)
+		downloaded_file = bot.download_file(file_info.file_path)
+		filename = 'import_{!s}.xlsx'.format(uid)
+		with open(filename, 'wb') as new_file:
+			new_file.write(downloaded_file)
+		text = 'Импортирование операций. Пожалуйста, подождите...'
+		bot.send_message(cid, text)
+		res = util.import_excel_file(uid, filename)
+		if not res:
+			res = 'Отсутствуют'
+		del READY_TO_IMPORT_FILE[uid]
+		os.remove(filename)
+		text = 'Импортирование завершено'
+		return bot.send_message(cid, text)
 
 
 @bot.message_handler(content_types=['text'])
@@ -1137,6 +1160,21 @@ def callback_inline(call):
 		bot.send_document(uid, open(file, 'rb'), caption='Ваша история операций')
 		os.remove(file)
 		return
+	
+	# Обработать импорт файла операций
+	if call.data == 'import_history':
+		READY_TO_IMPORT_FILE[uid] = {}
+		text = 'Пришлите .xlsx файл с операциями'
+		keyboard = types.InlineKeyboardMarkup()
+		keyboard.add(types.InlineKeyboardButton(text='Отмена', callback_data='cancelimport'))
+		return bot.send_message(cid, text, reply_markup=keyboard)
+
+	# Обработать отмену импорта файла операций
+	if call.data == 'cancelimport':
+		if uid in READY_TO_IMPORT_FILE:
+			del READY_TO_IMPORT_FILE[uid]
+		text = 'Импортирование отменено'
+		return bot.edit_message_text(text, cid, call.message.message_id)
 
 	# Обработать удаление операций
 	if call.data.startswith('delop'):
