@@ -983,11 +983,11 @@ def standart_int(number):
 		return int(n) == float(n)
 	if isInt(number):
 		n = '{0:,}'.format(number).replace(',', ' ')
-		if '.'in n: 
+		if '.'in n:
 			return n[:-2]
 		return n
 	else:
-		n = float('{0: >#16.4f}'.format(number))
+		n = float('{0: >#16.2f}'.format(number))
 		n = '{0:,}'.format(n).replace(',', ' ')
 		'''
 		if len(n.split('.')[1]) == 1:
