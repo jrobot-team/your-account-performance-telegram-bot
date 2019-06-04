@@ -103,7 +103,9 @@ def text_handler(message):
 		del READY_TO_IMPORT_FILE[uid]
 		os.remove(filename)
 		text = 'Импортирование завершено'
-		return bot.send_message(cid, text)
+		keyboard = types.InlineKeyboardMarkup()
+		keyboard.add(types.InlineKeyboardButton(text='История операций', callback_data='history_papers'))
+		return bot.send_message(cid, text, reply_markup=keyboard)
 
 
 @bot.message_handler(content_types=['text'])

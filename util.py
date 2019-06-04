@@ -1139,17 +1139,20 @@ def import_excel_file(uid, filename):
 
 			# Обработать операции по названию
 			if operation_type.value.lower() == 'пополнение счета':
-				_date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				# _date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				_date = int(time.mktime((datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y') + datetime.timedelta(hours=3)).timetuple()))
 				broker = sheet.cell(row, 3).value
 				amount = sheet.cell(row, 7).value
 				DataBase.add_new_amount(uid, int(time.time()), _date, amount, broker)
 			elif operation_type.value.lower() == 'вывод средств':
-				_date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				# _date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				_date = int(time.mktime((datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y') + datetime.timedelta(hours=3)).timetuple()))
 				broker = sheet.cell(row, 3).value
 				amount = sheet.cell(row, 7).value
 				DataBase.add_minus_amount(uid, int(time.time()), _date, amount, broker)
 			elif operation_type.value.lower() == 'покупка акций':
-				_date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				# _date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				_date = int(time.mktime((datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y') + datetime.timedelta(hours=3)).timetuple()))
 				broker = sheet.cell(row, 3).value
 				tiker = sheet.cell(row, 4).value
 				count = sheet.cell(row, 5).value
@@ -1161,7 +1164,8 @@ def import_excel_file(uid, filename):
 					continue
 				DataBase.add_buystock(uid, int(time.time()), _date, tiker, count, broker, price, api_price)
 			elif operation_type.value.lower() == 'продажа акций':
-				_date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				# _date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				_date = int(time.mktime((datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y') + datetime.timedelta(hours=3)).timetuple()))
 				broker = sheet.cell(row, 3).value
 				tiker = sheet.cell(row, 4).value
 				count = sheet.cell(row, 5).value
@@ -1173,7 +1177,8 @@ def import_excel_file(uid, filename):
 					continue
 				DataBase.add_salestock(uid, int(time.time()), _date, tiker, count, broker, price)
 			elif operation_type.value.lower() == 'покупка облигаций':
-				_date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				# _date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				_date = int(time.mktime((datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y') + datetime.timedelta(hours=3)).timetuple()))
 				broker = sheet.cell(row, 3).value
 				tiker = sheet.cell(row, 4).value
 				count = sheet.cell(row, 5).value
@@ -1192,7 +1197,8 @@ def import_excel_file(uid, filename):
 					uid, int(time.time()), _date, tiker, count, nkd, price, 
 					broker, api_price, api_nkd, api_FACEVALUE, api_ACCINT)
 			elif operation_type.value.lower() == 'продажа облигаций':
-				_date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				# _date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				_date = int(time.mktime((datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y') + datetime.timedelta(hours=3)).timetuple()))
 				broker = sheet.cell(row, 3).value
 				tiker = sheet.cell(row, 4).value
 				count = sheet.cell(row, 5).value
@@ -1205,23 +1211,27 @@ def import_excel_file(uid, filename):
 					continue
 				DataBase.add_salebond(uid, int(time.time()), _date, tiker, count, broker, nkd, price)
 			elif operation_type.value.lower() in ['налог', 'налоги']:
-				_date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				# _date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				_date = int(time.mktime((datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y') + datetime.timedelta(hours=3)).timetuple()))
 				broker = sheet.cell(row, 3).value
 				amount = sheet.cell(row, 7).value
 				DataBase.add_new_tax(uid, int(time.time()), _date, amount, broker)
 			elif operation_type.value.lower() in ['комиссия']:
-				_date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				# _date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				_date = int(time.mktime((datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y') + datetime.timedelta(hours=3)).timetuple()))
 				broker = sheet.cell(row, 3).value
 				amount = sheet.cell(row, 7).value
 				DataBase.add_new_commission(uid, int(time.time()), _date, amount, broker)
 			elif operation_type.value.lower() in ['купонный доход']:
-				_date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				# _date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				_date = int(time.mktime((datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y') + datetime.timedelta(hours=3)).timetuple()))
 				broker = sheet.cell(row, 3).value
 				tiker = sheet.cell(row, 4).value
 				amount = sheet.cell(row, 7).value
 				DataBase.add_new_couponincome(uid, int(time.time()), _date, tiker, amount, broker)
 			elif operation_type.value.lower() in ['дивиденды']:
-				_date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				# _date = int(time.mktime(datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y').timetuple()))
+				_date = int(time.mktime((datetime.datetime.strptime(sheet.cell(row, 1).value, '%d.%m.%Y') + datetime.timedelta(hours=3)).timetuple()))
 				broker = sheet.cell(row, 3).value
 				tiker = sheet.cell(row, 4).value
 				amount = sheet.cell(row, 7).value
