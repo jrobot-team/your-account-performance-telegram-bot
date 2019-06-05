@@ -372,6 +372,11 @@ def text_handler(message):
 				for x in ACTIONS_MONITOR_DATA[uid]['data']:
 					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
 			bot.send_message(cid, text)
+			input_date = util.get_available_input_date(
+				READY_TO_buystock[uid]['input_date'], 
+				READY_TO_buystock[uid]['ticker']
+			)
+			READY_TO_buystock[uid]['input_date'] = input_date
 			util.DataBase.add_buystock(
 				uid, int(time.time()),
 				READY_TO_buystock[uid]['input_date'],
@@ -464,6 +469,11 @@ def text_handler(message):
 				for x in ACTIONS_MONITOR_DATA[uid]['data']:
 					text += '{!s}: {!s}\n'.format(x['key'], x['value'])
 			bot.send_message(cid, text)
+			input_date = util.get_available_input_date(
+				READY_TO_salestock[uid]['input_date'], 
+				READY_TO_salestock[uid]['ticker']
+			)
+			READY_TO_salestock[uid]['input_date'] = input_date
 			util.DataBase.add_salestock(
 				uid, int(time.time()),
 				READY_TO_salestock[uid]['input_date'],

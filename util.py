@@ -1,4 +1,5 @@
 import time
+import random
 import datetime
 from operator import itemgetter
 
@@ -12,62 +13,37 @@ import config
 
 
 def average_price_of_inventory(transactions):
-	""" Calculates the average price of stock.
-	The FIFO method is used as the most common method for valuing stock.This
-	method assumes that the first inventories bought are the first ones to
-	be sold.
-
-	Arguments:
-	transactions: pandas.DataFrame, ordered by index, with a positive VOLUME
-	if a stock is bought, and with a negative one if sold.
-	Example of transactions:
-		+------------+--------+---------+
-		|    index   |  PRICE |  VOLUME |
-		+------------+--------+---------+
-		|'2017-10-16'| 197.67 |    20   |
-		|'2018-02-07'| 263.30 |   -10   |
-		+------------+--------+---------+
-
-	The function returns a float number.
-
+	""" 
+	Расчитать среднюю цену акции
 	"""
+	try:
+		closing_value = 0
+		closing_volume = transactions['VOLUME'].sum()
+		cumulative_volume = 0
 
-	# Closing value of inventory
-	closing_value = 0
-	# Closing volume of inventory.
-	# The sign of closing volume defines whether a long or short position.
-	closing_volume = transactions['VOLUME'].sum()
-	# Cumulative volume of recent transactions.
-	cumulative_volume = 0
-
-	for index in reversed(transactions.index):
-		# FOR loop starts with recent transactions. If they total in a long
-		# position, then only buying transactions to be counted as they
-		# increase closing volume. If they result in a short, then only
-		# selling transactions to be counted as they increase resulting
-		# volume.
-		if closing_volume > 0:
-			if transactions.at[index, 'VOLUME'] < 0:
-				recent_volume = 0
+		for index in reversed(transactions.index):
+			if closing_volume > 0:
+				if transactions.at[index, 'VOLUME'] < 0:
+					recent_volume = 0
+				else:
+					recent_volume = transactions.at[index, 'VOLUME']
 			else:
-				recent_volume = transactions.at[index, 'VOLUME']
-		else:
-			if transactions.at[index, 'VOLUME'] > 0:
-				recent_volume = 0
+				if transactions.at[index, 'VOLUME'] > 0:
+					recent_volume = 0
+				else:
+					recent_volume = transactions.at[index, 'VOLUME']
+			if closing_volume > 0:
+				volumes_left = max(0, min(recent_volume,
+										closing_volume - cumulative_volume))
 			else:
-				recent_volume = transactions.at[index, 'VOLUME']
-		# Summing only the units left in the closing inventory.
-		if closing_volume > 0:
-			volumes_left = max(0, min(recent_volume,
-									  closing_volume - cumulative_volume))
-		else:
-			volumes_left = min(0, max(recent_volume,
-									  closing_volume - cumulative_volume))
-		cumulative_volume += recent_volume
-		# Summing only the values of units left in the closing inventory.
-		closing_value += transactions.at[index, 'PRICE'] * volumes_left
-	# Returns average price of units left in closing inventory
-	return closing_value / closing_volume
+				volumes_left = min(0, max(recent_volume,
+										closing_volume - cumulative_volume))
+			cumulative_volume += recent_volume
+			closing_value += transactions.at[index, 'PRICE'] * volumes_left
+		return closing_value / closing_volume
+	except Exception as e:
+		print(e)
+		return 0
 
 
 class DataBase:
@@ -1314,6 +1290,37 @@ def import_excel_file(uid, filename):
 	return err_message
 
 
+def get_available_input_date(input_date, ticker):
+	"""
+	Получить валидный input date для тикеры
+	"""
+	connection = pymysql.connect(
+		host=config.db_host,
+		user=config.db_user,
+		password=config.db_password,
+		db=config.db_database,
+		charset=config.db_charset,
+		cursorclass=pymysql.cursors.DictCursor)
+	try:
+		arr = []
+		with connection.cursor() as cursor:
+			sql = 'SELECT * FROM buystock WHERE ticker=%s AND input_date=%s'
+			cursor.execute(sql, (ticker, input_date))
+			res = cursor.fetchall()
+			arr += res
+			sql = 'SELECT * FROM salestock WHERE ticker=%s AND input_date=%s'
+			cursor.execute(sql, (ticker, input_date))
+			res = cursor.fetchall()
+			arr += res
+		print(arr)
+		if len(arr) > 0:
+			input_date += random.randint(0, 100)
+		return input_date
+	finally:
+		connection.close()
+
+
+# print(get_available_input_date(1559174400, 'MGNT'))
 # print(import_excel_file(217166737, 'import_217166737.xlsx'))
 # print(get_account_state(217166737))
 # print(get_portfolio(217166737))
@@ -1322,23 +1329,3 @@ def import_excel_file(uid, filename):
 # print(Moex.get_bond_data('SU26204RMFS6'))  # SU26210RMFS3
 # print(get_portfolio_amount(217166737))
 # update_moex()
-
-'''
-stock_arr = [[174.56, 30], [218.46, 20], [233.57, 10], [203.8, 10], [281.3, 10], [197.67, 10], [263.3, -10]]
-date_arr = (1536883201, 1530835207, 1526515209, 1523491202, 1519776002, 1508284803, 1518134400)
-# stock_arr = [[197.67, 10], [281.3, 10], [203.8, 10], [233.57, 10], [218.46, 20], [174.56, 30], [263.3, -10]]
-# date_arr = [1573430400, 1573603200, 1573689600, 1573776000, 1573862400, 1573948800, 1573516800]
-
-
-new_date_arr = []
-for x in date_arr:
-	new_date_arr.append(datetime.datetime.utcfromtimestamp(x).strftime('%Y-%m-%d'))
-transactions = pd.DataFrame(stock_arr, columns=['PRICE', 'VOLUME'], index=date_arr)
-# transactions.VOLUME = pd.to_numeric(transactions.VOLUME, errors='coerce')
-# transactions = transactions.sort_values(['VOLUME'])
-transactions.VOLUME = transactions.VOLUME.astype(int)
-transactions = transactions.sort_index()
-print(transactions)
-average_price = average_price_of_inventory(transactions)
-print(average_price)
-'''
