@@ -5,3 +5,4 @@ python-dateutil==2.6.1
 schedule==0.6.0
 xlsxwriter==1.1.8
 openpyxl==2.6.2
+pandas==0.24.2

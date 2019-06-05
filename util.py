@@ -832,6 +832,8 @@ def get_portfolio(uid):
 
 				date_arr = tuple(date_arr)
 				transactions = pd.DataFrame(stock_arr, columns=['PRICE', 'VOLUME'], index=date_arr)
+				transactions.VOLUME = transactions.VOLUME.astype(int)
+				transactions = transactions.sort_index()
 				average_price = average_price_of_inventory(transactions)
 
 				# Текущая стоимость
@@ -1320,3 +1322,23 @@ def import_excel_file(uid, filename):
 # print(Moex.get_bond_data('SU26204RMFS6'))  # SU26210RMFS3
 # print(get_portfolio_amount(217166737))
 # update_moex()
+
+'''
+stock_arr = [[174.56, 30], [218.46, 20], [233.57, 10], [203.8, 10], [281.3, 10], [197.67, 10], [263.3, -10]]
+date_arr = (1536883201, 1530835207, 1526515209, 1523491202, 1519776002, 1508284803, 1518134400)
+# stock_arr = [[197.67, 10], [281.3, 10], [203.8, 10], [233.57, 10], [218.46, 20], [174.56, 30], [263.3, -10]]
+# date_arr = [1573430400, 1573603200, 1573689600, 1573776000, 1573862400, 1573948800, 1573516800]
+
+
+new_date_arr = []
+for x in date_arr:
+	new_date_arr.append(datetime.datetime.utcfromtimestamp(x).strftime('%Y-%m-%d'))
+transactions = pd.DataFrame(stock_arr, columns=['PRICE', 'VOLUME'], index=date_arr)
+# transactions.VOLUME = pd.to_numeric(transactions.VOLUME, errors='coerce')
+# transactions = transactions.sort_values(['VOLUME'])
+transactions.VOLUME = transactions.VOLUME.astype(int)
+transactions = transactions.sort_index()
+print(transactions)
+average_price = average_price_of_inventory(transactions)
+print(average_price)
+'''
