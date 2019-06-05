@@ -814,7 +814,7 @@ def get_portfolio(uid):
 					buy_count += x['count']
 					stock_arr.append([float(x['price']), int(x['count'])])
 					# date_arr.append(datetime.datetime.utcfromtimestamp(int(x['date'])).strftime('%Y-%m-%d'))
-					date_arr.append(int(x['date']))
+					date_arr.append(int(x['input_date']))
 				sql = 'SELECT * FROM salestock WHERE uid=%s AND ticker=%s'
 				cursor.execute(sql, (uid, ticker))
 				res2 = cursor.fetchall()
@@ -824,7 +824,7 @@ def get_portfolio(uid):
 					sale_count += x['count']
 					stock_arr.append([float(x['price']), int(x['count']) * -1])
 					# date_arr.append(datetime.datetime.utcfromtimestamp(int(x['date'])).strftime('%Y-%m-%d'))
-					date_arr.append(int(x['date']))
+					date_arr.append(int(x['input_date']))
 				# Количество акций по тикеру
 				count = buy_count - sale_count
 				if count == 0:
