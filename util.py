@@ -6,8 +6,68 @@ import openpyxl
 import requests
 import xlsxwriter
 import pymysql.cursors
+import pandas as pd
 
 import config
+
+
+def average_price_of_inventory(transactions):
+	""" Calculates the average price of stock.
+	The FIFO method is used as the most common method for valuing stock.This
+	method assumes that the first inventories bought are the first ones to
+	be sold.
+
+	Arguments:
+	transactions: pandas.DataFrame, ordered by index, with a positive VOLUME
+	if a stock is bought, and with a negative one if sold.
+	Example of transactions:
+		+------------+--------+---------+
+		|    index   |  PRICE |  VOLUME |
+		+------------+--------+---------+
+		|'2017-10-16'| 197.67 |    20   |
+		|'2018-02-07'| 263.30 |   -10   |
+		+------------+--------+---------+
+
+	The function returns a float number.
+
+	"""
+
+	# Closing value of inventory
+	closing_value = 0
+	# Closing volume of inventory.
+	# The sign of closing volume defines whether a long or short position.
+	closing_volume = transactions['VOLUME'].sum()
+	# Cumulative volume of recent transactions.
+	cumulative_volume = 0
+
+	for index in reversed(transactions.index):
+		# FOR loop starts with recent transactions. If they total in a long
+		# position, then only buying transactions to be counted as they
+		# increase closing volume. If they result in a short, then only
+		# selling transactions to be counted as they increase resulting
+		# volume.
+		if closing_volume > 0:
+			if transactions.at[index, 'VOLUME'] < 0:
+				recent_volume = 0
+			else:
+				recent_volume = transactions.at[index, 'VOLUME']
+		else:
+			if transactions.at[index, 'VOLUME'] > 0:
+				recent_volume = 0
+			else:
+				recent_volume = transactions.at[index, 'VOLUME']
+		# Summing only the units left in the closing inventory.
+		if closing_volume > 0:
+			volumes_left = max(0, min(recent_volume,
+									  closing_volume - cumulative_volume))
+		else:
+			volumes_left = min(0, max(recent_volume,
+									  closing_volume - cumulative_volume))
+		cumulative_volume += recent_volume
+		# Summing only the values of units left in the closing inventory.
+		closing_value += transactions.at[index, 'PRICE'] * volumes_left
+	# Returns average price of units left in closing inventory
+	return closing_value / closing_volume
 
 
 class DataBase:
@@ -742,7 +802,8 @@ def get_portfolio(uid):
 					tickers.append(x['ticker'])
 			print(tickers)
 			for ticker in tickers:
-				# ticker = x['ticker']
+				stock_arr = []
+				date_arr = []
 				sql = 'SELECT * FROM buystock WHERE uid=%s AND ticker=%s'
 				cursor.execute(sql, (uid, ticker))
 				res1 = cursor.fetchall()
@@ -751,6 +812,9 @@ def get_portfolio(uid):
 				for x in res1:
 					amount += float(x['price']) * int(x['count'])
 					buy_count += x['count']
+					stock_arr.append([float(x['price']), int(x['count'])])
+					# date_arr.append(datetime.datetime.utcfromtimestamp(int(x['date'])).strftime('%Y-%m-%d'))
+					date_arr.append(int(x['date']))
 				sql = 'SELECT * FROM salestock WHERE uid=%s AND ticker=%s'
 				cursor.execute(sql, (uid, ticker))
 				res2 = cursor.fetchall()
@@ -758,14 +822,17 @@ def get_portfolio(uid):
 				for x in res2:
 					amount -= float(x['price']) * int(x['count'])
 					sale_count += x['count']
+					stock_arr.append([float(x['price']), int(x['count']) * -1])
+					# date_arr.append(datetime.datetime.utcfromtimestamp(int(x['date'])).strftime('%Y-%m-%d'))
+					date_arr.append(int(x['date']))
 				# Количество акций по тикеру
 				count = buy_count - sale_count
 				if count == 0:
 					continue
 
-				# Сумма всех цен операций покупки
-				# Средняя стоимость
-				average_price = amount / count
+				date_arr = tuple(date_arr)
+				transactions = pd.DataFrame(stock_arr, columns=['PRICE', 'VOLUME'], index=date_arr)
+				average_price = average_price_of_inventory(transactions)
 
 				# Текущая стоимость
 				if len(res1) == 0:
@@ -800,7 +867,6 @@ def get_portfolio(uid):
 					tickers.append(x['ticker'])
 			print(tickers)
 			for ticker in tickers:
-				# ticker = x['ticker']
 				sql = 'SELECT * FROM buybond WHERE uid=%s AND ticker=%s'
 				cursor.execute(sql, (uid, ticker))
 				res1 = cursor.fetchall()
