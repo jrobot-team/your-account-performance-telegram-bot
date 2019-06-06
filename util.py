@@ -1054,6 +1054,67 @@ def standart_int(number):
 		return n
 
 
+
+def get_available_stock_input_date(input_date, ticker):
+	"""
+	Получить валидный input date для тикеры
+	"""
+	connection = pymysql.connect(
+		host=config.db_host,
+		user=config.db_user,
+		password=config.db_password,
+		db=config.db_database,
+		charset=config.db_charset,
+		cursorclass=pymysql.cursors.DictCursor)
+	try:
+		arr = []
+		with connection.cursor() as cursor:
+			sql = 'SELECT * FROM buystock WHERE ticker=%s AND input_date=%s'
+			cursor.execute(sql, (ticker, input_date))
+			res = cursor.fetchall()
+			arr += res
+			sql = 'SELECT * FROM salestock WHERE ticker=%s AND input_date=%s'
+			cursor.execute(sql, (ticker, input_date))
+			res = cursor.fetchall()
+			arr += res
+		print(arr)
+		if len(arr) > 0:
+			input_date += random.randint(0, 1000)
+		return input_date
+	finally:
+		connection.close()
+
+
+def get_available_bond_input_date(input_date, ticker):
+	"""
+	Получить валидный input date для тикеры
+	"""
+	connection = pymysql.connect(
+		host=config.db_host,
+		user=config.db_user,
+		password=config.db_password,
+		db=config.db_database,
+		charset=config.db_charset,
+		cursorclass=pymysql.cursors.DictCursor)
+	try:
+		arr = []
+		with connection.cursor() as cursor:
+			sql = 'SELECT * FROM buybond WHERE ticker=%s AND input_date=%s'
+			cursor.execute(sql, (ticker, input_date))
+			res = cursor.fetchall()
+			arr += res
+			sql = 'SELECT * FROM salebond WHERE ticker=%s AND input_date=%s'
+			cursor.execute(sql, (ticker, input_date))
+			res = cursor.fetchall()
+			arr += res
+		print(arr)
+		if len(arr) > 0:
+			input_date += random.randint(0, 1000)
+		return input_date
+	finally:
+		connection.close()
+
+
 def create_excel_export_file(uid):
 	"""
 	Создать файл excel для экспорта операций
@@ -1209,6 +1270,7 @@ def import_excel_file(uid, filename):
 				tiker = sheet.cell(row, 4).value
 				count = sheet.cell(row, 5).value
 				price = sheet.cell(row, 6).value
+				_date = get_available_stock_input_date(_date, ticker)
 				api_price = Moex.get_stock_price(tiker.upper())
 				if not api_price:
 					err_message = 'Строка {!s}: Такого тикера не существует\n'.format(row)
@@ -1222,6 +1284,7 @@ def import_excel_file(uid, filename):
 				tiker = sheet.cell(row, 4).value
 				count = sheet.cell(row, 5).value
 				price = sheet.cell(row, 6).value
+				_date = get_available_stock_input_date(_date, ticker)
 				api_price = Moex.get_stock_price(tiker.upper())
 				if not api_price:
 					err_message = 'Строка {!s}: Такого тикера не существует\n'.format(row)
@@ -1236,6 +1299,7 @@ def import_excel_file(uid, filename):
 				count = sheet.cell(row, 5).value
 				price = sheet.cell(row, 6).value
 				nkd = sheet.cell(row, 8).value
+				_date = get_available_bond_input_date(_date, ticker)
 				data = Moex.get_bond_data(tiker.upper())
 				if not data:
 					err_message = 'Строка {!s}: Такого тикера не существует\n'.format(row)
@@ -1256,6 +1320,7 @@ def import_excel_file(uid, filename):
 				count = sheet.cell(row, 5).value
 				price = sheet.cell(row, 6).value
 				nkd = sheet.cell(row, 8).value
+				_date = get_available_bond_input_date(_date, ticker)
 				data = Moex.get_bond_data(tiker.upper())
 				if not data:
 					err_message = 'Строка {!s}: Такого тикера не существует\n'.format(row)
@@ -1296,66 +1361,6 @@ def import_excel_file(uid, filename):
 		row += 1
 
 	return err_message
-
-
-def get_available_stock_input_date(input_date, ticker):
-	"""
-	Получить валидный input date для тикеры
-	"""
-	connection = pymysql.connect(
-		host=config.db_host,
-		user=config.db_user,
-		password=config.db_password,
-		db=config.db_database,
-		charset=config.db_charset,
-		cursorclass=pymysql.cursors.DictCursor)
-	try:
-		arr = []
-		with connection.cursor() as cursor:
-			sql = 'SELECT * FROM buystock WHERE ticker=%s AND input_date=%s'
-			cursor.execute(sql, (ticker, input_date))
-			res = cursor.fetchall()
-			arr += res
-			sql = 'SELECT * FROM salestock WHERE ticker=%s AND input_date=%s'
-			cursor.execute(sql, (ticker, input_date))
-			res = cursor.fetchall()
-			arr += res
-		print(arr)
-		if len(arr) > 0:
-			input_date += random.randint(0, 100)
-		return input_date
-	finally:
-		connection.close()
-
-
-def get_available_bond_input_date(input_date, ticker):
-	"""
-	Получить валидный input date для тикеры
-	"""
-	connection = pymysql.connect(
-		host=config.db_host,
-		user=config.db_user,
-		password=config.db_password,
-		db=config.db_database,
-		charset=config.db_charset,
-		cursorclass=pymysql.cursors.DictCursor)
-	try:
-		arr = []
-		with connection.cursor() as cursor:
-			sql = 'SELECT * FROM buybond WHERE ticker=%s AND input_date=%s'
-			cursor.execute(sql, (ticker, input_date))
-			res = cursor.fetchall()
-			arr += res
-			sql = 'SELECT * FROM salebond WHERE ticker=%s AND input_date=%s'
-			cursor.execute(sql, (ticker, input_date))
-			res = cursor.fetchall()
-			arr += res
-		print(arr)
-		if len(arr) > 0:
-			input_date += random.randint(0, 100)
-		return input_date
-	finally:
-		connection.close()
 
 
 # print(get_available_stock_input_date(1559174400, 'MGNT'))
