@@ -845,6 +845,8 @@ def get_portfolio(uid):
 					tickers.append(x['ticker'])
 			print(tickers)
 			for ticker in tickers:
+				stock_arr1 = []
+				date_arr1 = []
 				sql = 'SELECT * FROM buybond WHERE uid=%s AND ticker=%s'
 				cursor.execute(sql, (uid, ticker))
 				res1 = cursor.fetchall()
@@ -853,6 +855,8 @@ def get_portfolio(uid):
 				for x in res1:
 					amount += (float(x['price']) + float(x['nkd'])) * int(x['count'])
 					buy_count += x['count']
+					stock_arr1.append([(float(x['price']) + float(x['nkd'])), int(x['count'])])
+					date_arr1.append(int(x['input_date']))
 				sql = 'SELECT * FROM salebond WHERE uid=%s AND ticker=%s'
 				cursor.execute(sql, (uid, ticker))
 				res2 = cursor.fetchall()
@@ -860,14 +864,18 @@ def get_portfolio(uid):
 				for x in res2:
 					amount -= (float(x['price']) + float(x['nkd'])) * int(x['count'])
 					sale_count += x['count']
+					stock_arr1.append([(float(x['price']) + float(x['nkd'])), int(x['count']) * -1])
+					date_arr1.append(int(x['input_date']))
 				# Количество облигаций по тикеру
 				count = buy_count - sale_count
 				if count == 0:
 					continue
 
-				# Сумма всех цен операций покупки
-				# Средняя стоимость
-				average_price = amount / count
+				date_arr1 = tuple(date_arr1)
+				transactions = pd.DataFrame(stock_arr1, columns=['PRICE', 'VOLUME'], index=date_arr1)
+				transactions.VOLUME = transactions.VOLUME.astype(int)
+				transactions = transactions.sort_index()
+				average_price = average_price_of_inventory(transactions)
 
 				# Текущая стоимость
 				if len(res1) == 0:
@@ -1290,7 +1298,7 @@ def import_excel_file(uid, filename):
 	return err_message
 
 
-def get_available_input_date(input_date, ticker):
+def get_available_stock_input_date(input_date, ticker):
 	"""
 	Получить валидный input date для тикеры
 	"""
@@ -1320,7 +1328,37 @@ def get_available_input_date(input_date, ticker):
 		connection.close()
 
 
-# print(get_available_input_date(1559174400, 'MGNT'))
+def get_available_bond_input_date(input_date, ticker):
+	"""
+	Получить валидный input date для тикеры
+	"""
+	connection = pymysql.connect(
+		host=config.db_host,
+		user=config.db_user,
+		password=config.db_password,
+		db=config.db_database,
+		charset=config.db_charset,
+		cursorclass=pymysql.cursors.DictCursor)
+	try:
+		arr = []
+		with connection.cursor() as cursor:
+			sql = 'SELECT * FROM buybond WHERE ticker=%s AND input_date=%s'
+			cursor.execute(sql, (ticker, input_date))
+			res = cursor.fetchall()
+			arr += res
+			sql = 'SELECT * FROM salebond WHERE ticker=%s AND input_date=%s'
+			cursor.execute(sql, (ticker, input_date))
+			res = cursor.fetchall()
+			arr += res
+		print(arr)
+		if len(arr) > 0:
+			input_date += random.randint(0, 100)
+		return input_date
+	finally:
+		connection.close()
+
+
+# print(get_available_stock_input_date(1559174400, 'MGNT'))
 # print(import_excel_file(217166737, 'import_217166737.xlsx'))
 # print(get_account_state(217166737))
 # print(get_portfolio(217166737))
