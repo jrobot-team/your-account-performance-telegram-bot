@@ -1062,15 +1062,13 @@ def callback_inline(call):
 		keyboard.add(types.InlineKeyboardButton(text='В главное меню', callback_data='returnmainmenu'))
 		return bot.send_message(cid, text, reply_markup=keyboard)
 	elif call.data == 'spravka':
-		text = 'Добавить текст позже'
 		keyboard = types.InlineKeyboardMarkup()
 		keyboard.add(types.InlineKeyboardButton(text='В главное меню', callback_data='returnmainmenu'))
-		return bot.edit_message_text(text, chat_id=cid, message_id=call.message.message_id, reply_markup=keyboard)
+		return bot.edit_message_text(config.spravka, chat_id=cid, message_id=call.message.message_id, reply_markup=keyboard)
 	elif call.data == 'kontakti':
-		text = 'Добавить текст позже'
 		keyboard = types.InlineKeyboardMarkup()
 		keyboard.add(types.InlineKeyboardButton(text='В главное меню', callback_data='returnmainmenu'))
-		return bot.edit_message_text(text, chat_id=cid, message_id=call.message.message_id, reply_markup=keyboard)
+		return bot.edit_message_text(config.contacts, chat_id=cid, message_id=call.message.message_id, reply_markup=keyboard)
 
 	# Обработать истории операций
 	if call.data.startswith('history'):
