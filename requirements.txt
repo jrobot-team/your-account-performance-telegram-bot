@@ -1,6 +1,6 @@
 pyTelegramBotAPI==3.6.6
 PyMySQL==0.9.2
-requests==2.20.1
+requests==2.31.0
 python-dateutil==2.6.1
 schedule==0.6.0
 xlsxwriter==1.1.8
